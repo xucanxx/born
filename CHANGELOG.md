@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `models/llama`: New LLaMA model package with GGUF loading and injectable attention
+  - `Model[B]`, `Layer[B]`, `NewModel`, `NewModelCache` — full transformer decoder
+  - Grouped-Query Attention (GQA) with RoPE (rotate-half convention)
+  - SwiGLU FFN, RMSNorm, incremental KV-cache decoding
+  - `WithAttentionFunc` option for runtime attention replacement (Flash Attention, etc.)
+  - `Layer.DebugForward` returns attn and FFN contributions for diagnostics
+  - `LoadGGUF(path, backend)` — loads Q4_K, Q5_K, Q6_K, Q8_0, F16, F32 weights from GGUF files
+  - Implements `generate.LLMModel` interface — drop-in for `generate.TextGenerator`
+  - Tested with TinyLlama-1.1B-Q8_0: Paris top-1 answer confirmed
+  - Note: Q4_K_M (4-bit) requires quantized matmul for correct inference; Q8_0 (8-bit) works with full dequantization
+- `loader`: Public API for model loading (`LoadGGUF`, `LoadSafeTensors`)
+  - Namespace-clean: `loader.LoadGGUF(path, backend)` at module root
+- `nn.SetSeed(seed)` / `nn.ResetSeed()` for reproducible weight initialization
+  - Seeds both nn (Xavier, Embedding) and tensor (Randn, Rand) random sources
+  - Thread-safe (sync.Mutex per package)
+  - Enables deterministic model creation for experiments and testing
+  - Public API: `nn.SetSeed(42)` before `nn.NewLinear(...)` guarantees identical weights
 - `Clamp` element-wise tensor operation ([#61](https://github.com/born-ml/born/pull/61) by [@bennibbelink](https://github.com/bennibbelink))
   - Restricts values to `[min, max]` range
   - CPU: `int32`, `int64`, `float32`, `float64`
@@ -16,6 +33,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Autodiff backward: gradient masked by `min <= x <= max`
   - Panics on NaN bounds (float types)
   - `minBound > maxBound` → all values set to `maxBound` (matches PyTorch)
+- `internal/loader`: `GGMLMapper` — maps GGUF-native (`blk.{i}.*`) tensor names to Born standard names
+  - `DetectNaming` identifies HuggingFace vs GGML weight naming conventions automatically
+  - `GetMapperForNaming` selects the correct mapper from a weight name sample
+
+### Fixed
+
+- **RoPE**: Fixed rotate-half convention (was interleaved, caused incorrect positional encoding for LLaMA)
+  - Interleaved: `[-x1, x0, -x3, x2, ...]` — wrong for LLaMA/HuggingFace models
+  - Rotate-half: `[-xn, x0, ..., -x2n, xn+1, ...]` — correct convention now implemented
+- **GGUF Q4_K / Q5_K**: Correct scale unpacking algorithm
+  - `sc[0..7]` extracted from low 6 bits of scale bytes (was reading wrong bit positions)
+  - `m[0..7]` (minimum values) correctly assembled from high 2 bits + low nibble pattern
+- **GGUF Float16**: Correct subnormal handling in `Float16ToFloat32`
+  - Subnormals (`exp==0, mantissa!=0`) now expand correctly to `(-1)^sign * 2^-14 * mantissa/1024`
+  - Previously treated subnormals as zero, silently corrupting F16 model weights
+- **GGUF loader**: GGML tensor naming support (`blk.{i}.*` format)
+  - Files produced by llama.cpp use GGML names; Born previously only handled HuggingFace names
+  - Weight routing now correctly maps `blk.0.attn_q.weight → layers.0.attn.q.weight`
+- **LLaMA loader**: Tied embeddings — `lm_head.weight` is now copied from `embedding.weight`
+  when absent in the GGUF file (standard for TinyLlama, LLaMA-2, etc.)
+
+### Changed
+
+- **WebGPU SiLU**: SiLU activation shader connected to backend (`ops.go` now exposes `SiLU` method)
+  - Previously the WGSL shader existed but was unreachable; now fully wired
+- **gogpu/wgpu**: upgraded v0.26.8 → v0.27.5
 
 ## [0.8.0] - 2026-04-26
 
