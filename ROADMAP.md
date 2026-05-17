@@ -1,35 +1,35 @@
 # Born ML Framework - Development Roadmap
 
-> **Strategic Approach**: PyTorch-inspired API, Burn-inspired architecture, Go best practices
-> **Philosophy**: Correctness → Performance → Features
+> **Mission**: De-facto standard ML framework for Go — training and inference in a single binary
+> **Architecture**: Burn-inspired (Rust), Go-idiomatic API
+> **Philosophy**: Correctness → Performance → Scale
 
-**Last Updated**: 2026-05-17 | **Current Version**: v0.9.0 | **Strategy**: Core → GPU → LLM → ONNX → Inference Opt → Production → v1.0 LTS | **Milestone**: v0.8.0 (GoGPU Migration) → v0.8.1 (LLaMA Inference) → v0.8.2 (Tokenizer + Backward Ops) → v1.0.0 LTS
+**Last Updated**: 2026-05-17 | **Current Version**: v0.9.0 | **Go**: 1.26+ | **Strategy**: Core → GPU → Models → Performance → Scale → Production → v1.0 LTS
 
 ---
 
 ## 🎯 Vision
 
-Build a **production-ready, type-safe ML framework for Go** with zero external dependencies, providing PyTorch-like ergonomics with Go's safety guarantees.
+Born = **de-facto standard ML for Go ecosystem.** Any Go service adds ML via `go get github.com/born-ml/born` — training and inference in the same binary, same toolchain, zero external dependencies.
 
-### Key Advantages
+Not a PyTorch replacement (different niche). Not an academic tool (production-first). Born is what `database/sql` is for databases: the standard Go-native interface for ML.
 
-✅ **Type-Safe ML**
-- Generic type system (Tensor[T, B])
-- Compile-time shape checking (where possible)
-- Memory-safe operations
-- Go's strong typing prevents runtime errors
+### Why Born
 
-✅ **Zero Dependencies**
-- Pure Go implementation (core framework)
-- No Python interop needed
-- No C/CGo complexity
-- Complete control over code security
+- **One stack**: train and deploy in Go, no Python sidecar, no FFI
+- **One binary**: `go build` → GPU-ready binary, no Docker, no CUDA install
+- **One language**: research experiments and production code share the same codebase
+- **Type-safe**: `Tensor[float32, *webgpu.Backend]` — errors at compile-time, not runtime
 
-✅ **Production-Ready from Day One**
-- Validated on MNIST (97.44% MLP, 98.18% CNN)
-- Comprehensive test coverage (53.7%)
-- Race detector clean
-- golangci-lint: 0 issues
+### What Born Does Today (v0.9.0)
+
+- ✅ Train models from scratch on CPU and GPU (HRM model validated)
+- ✅ LLaMA inference from GGUF files (TinyLlama 1.1B verified)
+- ✅ ONNX import (49 operators)
+- ✅ GPU acceleration: WebGPU/Vulkan via gogpu/wgpu (pure Go, zero CGO)
+- ✅ AVX2 SIMD, cache-tiled MatMul, parallel BatchMatMul
+- ✅ GPU batched dispatch (50→1 submits per forward pass)
+- ✅ Autodiff: all backward ops via forward composition (Burn pattern)
 
 ---
 
@@ -84,13 +84,15 @@ v0.8.2 (Tokenizer Fix, Backward Ops Migration, Scalar Gradient Fix) ✅ RELEASED
        ↓ (GPU scatter-add shaders)
 v0.8.3 (GPU SelectAdd/ScatterAdd Shaders) ✅ RELEASED (2026-05-16)
        ↓ (CPU parallel + GPU batching + SIMD)
-v0.9.0 (CPU Parallel, GPU Batching, AVX2 SIMD) → CURRENT (2026-05-17)
+v0.9.0 (CPU Parallel, GPU Batching, AVX2 SIMD) ✅ RELEASED (2026-05-17)
+       ↓ (distributed multi-GPU)
+v0.10.0 (Distributed Multi-GPU, Data Parallelism) → Q3 2026
        ↓ (quantization, production serving)
-v0.9.0 (CPU Multi-thread, PagedAttention, Kernel Fusion) → June 2026
-       ↓ (scale & stability)
-v0.10.0 (Multi-GPU, SIMD, Gradient Checkpointing) → Aug 2026
-       ↓ (API freeze period)
-v1.0.0 LTS → After API stabilization
+v0.11.0 (Quantization, INT8/GPTQ, Model Zoo) → Q4 2026
+       ↓ (multi-node, production serving)
+v0.12.0 (Multi-Node, PD-Disaggregation, Production Serving) → Q1 2027
+       ↓ (API stabilization)
+v1.0.0 LTS → API freeze, stability guarantees
 ```
 
 ### Critical Milestones
@@ -199,35 +201,35 @@ v1.0.0 LTS → After API stabilization
 - WGSL compute shaders for scatter-add (no f32 atomics)
 - 27K readbacks → 1 GPU dispatch. HRM: minutes → seconds
 
-**v0.9.0** = CPU Parallel + GPU Batching + AVX2 SIMD → CURRENT (2026-05-17)
-- CPU BatchMatMul goroutine parallelism (2-4x, threshold B>4)
-- CPU cache-tiled blocked MatMul (3-5x, L1-aligned 64×64 blocks)
-- AVX2 SIMD micro-kernel via Go 1.26 `goexperiment.simd` (3.5x)
-- GPU batched dispatch: queue ops, single Submit on Data() (50→1 submits)
-- Go 1.26 minimum (for simd/archsimd support)
-- Combined CPU speedup: ~20-70x for large batch MatMul on AVX2
+**v0.9.0** = CPU Parallel + GPU Batching + AVX2 SIMD ✅ RELEASED (2026-05-17)
+- CPU: parallel BatchMatMul (2-4x), cache-tiled blocked MatMul (3-5x), AVX2 SIMD (3.5x)
+- GPU: batched dispatch (50→1 submits), all resource keepAlive fixes
+- Go 1.26 minimum. Combined CPU: ~20-70x for large batch MatMul.
+- HRM GPU training validated: 160+ steps, loss converging
 
-**v0.10.0** = Quantization & Production Serving → July 2026
-- CPU multi-threaded MatMul/BatchMatMul (TASK-133)
-- PagedAttention (>90% GPU utilization)
-- Continuous Batching (10-23x throughput)
-- Kernel Fusion (30-50% speedup)
-- MoE Support (Mixtral, DeepSeek)
+**v0.10.0** = Distributed Multi-GPU → Q3 2026 (ADR-011)
+- Device struct with Index (CUDA:0, CUDA:1, ...)
+- Ring AllReduce for single-node data parallelism (port from Burn)
+- Distributed data loader (automatic batch sharding)
+- Device registry + capability reporting
 
-**v0.10.0** = Scale & Stability → April 2026
-- Multi-GPU Data Parallelism (pure Go)
-- CPU SIMD Optimization (AVX2/Neon)
-- Gradient Checkpointing (80% memory savings)
-- Training Dashboard (TUI)
-- Comprehensive documentation
+**v0.11.0** = Quantization + Model Zoo → Q4 2026
+- INT8 symmetric quantization
+- GPTQ/AWQ 4-bit
+- Pre-trained model loading
+- PagedAttention for LLM serving
 
-**v1.0.0** = LTS (After API Freeze)
-- API freeze period (community feedback)
-- Stable API guarantees
-- 3+ years support
-- Production hardening
+**v0.12.0** = Multi-Node + Production Serving → Q1 2027
+- Multi-node orchestrator (gRPC, port from Burn)
+- PD-disaggregation (prefill/decode split)
+- Continuous batching
+- Fault tolerance + checkpointing
 
-**Why v0.2.0?**: GPU acceleration is critical for production ML. WebGPU provides zero-CGO GPU support, making Born the first Go ML framework with true GPU acceleration without C dependencies.
+**v1.0.0** = LTS
+- API freeze (community feedback period)
+- Stable API guarantees, semantic versioning
+- Production hardening, comprehensive documentation
+- Goal: any Go service adds ML via `go get github.com/born-ml/born`
 
 ---
 
