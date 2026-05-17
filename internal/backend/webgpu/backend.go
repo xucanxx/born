@@ -36,7 +36,8 @@ type pipelineEntry struct {
 // tensor's Data() triggers ReadGPUBuffer.
 type pendingSubmission struct {
 	cmdBuffer  *wgpu.CommandBuffer
-	resultBufs []*wgpu.Buffer // released after queue.Submit completes
+	resultBufs []*wgpu.Buffer    // released after queue.Submit completes
+	bindGroups []*wgpu.BindGroup // released after queue.Submit completes
 }
 
 // Backend implements tensor operations on GPU using WebGPU.
@@ -176,12 +177,15 @@ func (b *Backend) flushCommands() {
 		panic("webgpu: flushCommands: submit failed: " + err.Error())
 	}
 
-	// Release intermediate result buffers now that Submit has registered them
+	// Release intermediate resources now that Submit has registered them
 	// with the GPU's destroy queue (lastSubmissionIndex updated). wgpu defers
 	// the actual HAL destruction until the GPU completes this submission index.
 	for _, p := range pending {
 		for _, buf := range p.resultBufs {
 			buf.Release()
+		}
+		for _, bg := range p.bindGroups {
+			bg.Release()
 		}
 	}
 }
