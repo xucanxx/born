@@ -2,9 +2,16 @@ package cpu
 
 import (
 	"fmt"
+	"runtime"
+	"sync"
 
 	"github.com/born-ml/born/internal/tensor"
 )
+
+// batchParallelThreshold is the minimum batch size before parallelising across goroutines.
+// Below this threshold the goroutine-spawn overhead exceeds the compute savings.
+// Empirical value from GoMLX; revisit with project benchmarks.
+const batchParallelThreshold = 4
 
 // BatchMatMul performs batched matrix multiplication with numpy-style broadcasting.
 // Supports tensors with 2 or more dimensions. At least one input must be 3D or higher.
@@ -92,36 +99,92 @@ func batchMatmulBroadcast(
 }
 
 // batchMatmulFloat32 performs batched matrix multiplication for float32.
+// Batches are independent, so large batch counts are parallelised across CPU cores.
+//
+//nolint:dupl // Intentional duplication for float32/float64; type-specific matmul call precludes generics without boxing.
 func batchMatmulFloat32(c, a, b []float32, batchSize, m, k, n int) {
 	matrixSizeA := m * k
 	matrixSizeB := k * n
 	matrixSizeC := m * n
 
-	for batch := range batchSize {
-		aOffset := batch * matrixSizeA
-		bOffset := batch * matrixSizeB
-		cOffset := batch * matrixSizeC
-
-		matmulFloat32(c[cOffset:], a[aOffset:], b[bOffset:], m, k, n)
+	if batchSize <= batchParallelThreshold {
+		for batch := range batchSize {
+			off := batch * matrixSizeC
+			matmulFloat32(c[off:off+matrixSizeC], a[batch*matrixSizeA:], b[batch*matrixSizeB:], m, k, n)
+		}
+		return
 	}
+
+	numWorkers := min(runtime.NumCPU(), batchSize)
+	batchesPerWorker := (batchSize + numWorkers - 1) / numWorkers
+
+	var wg sync.WaitGroup
+	for w := range numWorkers {
+		startBatch := w * batchesPerWorker
+		if startBatch >= batchSize {
+			break
+		}
+		endBatch := min(startBatch+batchesPerWorker, batchSize)
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for batch := start; batch < end; batch++ {
+				off := batch * matrixSizeC
+				// Cap the slice to exactly m*n elements so matmulFloat32's
+				// zero-initialisation loop does not overwrite adjacent batch slots.
+				matmulFloat32(c[off:off+matrixSizeC], a[batch*matrixSizeA:], b[batch*matrixSizeB:], m, k, n)
+			}
+		}(startBatch, endBatch)
+	}
+	wg.Wait()
 }
 
 // batchMatmulFloat64 performs batched matrix multiplication for float64.
+// Batches are independent, so large batch counts are parallelised across CPU cores.
+//
+//nolint:dupl // Intentional duplication for float32/float64; type-specific matmul call precludes generics without boxing.
 func batchMatmulFloat64(c, a, b []float64, batchSize, m, k, n int) {
 	matrixSizeA := m * k
 	matrixSizeB := k * n
 	matrixSizeC := m * n
 
-	for batch := range batchSize {
-		aOffset := batch * matrixSizeA
-		bOffset := batch * matrixSizeB
-		cOffset := batch * matrixSizeC
-
-		matmulFloat64(c[cOffset:], a[aOffset:], b[bOffset:], m, k, n)
+	if batchSize <= batchParallelThreshold {
+		for batch := range batchSize {
+			off := batch * matrixSizeC
+			matmulFloat64(c[off:off+matrixSizeC], a[batch*matrixSizeA:], b[batch*matrixSizeB:], m, k, n)
+		}
+		return
 	}
+
+	numWorkers := min(runtime.NumCPU(), batchSize)
+	batchesPerWorker := (batchSize + numWorkers - 1) / numWorkers
+
+	var wg sync.WaitGroup
+	for w := range numWorkers {
+		startBatch := w * batchesPerWorker
+		if startBatch >= batchSize {
+			break
+		}
+		endBatch := min(startBatch+batchesPerWorker, batchSize)
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for batch := start; batch < end; batch++ {
+				off := batch * matrixSizeC
+				// Cap the slice to exactly m*n elements so matmulFloat64's
+				// zero-initialisation loop does not overwrite adjacent batch slots.
+				matmulFloat64(c[off:off+matrixSizeC], a[batch*matrixSizeA:], b[batch*matrixSizeB:], m, k, n)
+			}
+		}(startBatch, endBatch)
+	}
+	wg.Wait()
 }
 
 // batchMatmulBroadcastFloat32 performs batched matrix multiplication for float32 with broadcast.
+// Batch indices are independent, so large batch counts are parallelised across CPU cores.
+// Stride slices are read-only, making concurrent access safe without locks.
+//
+//nolint:dupl // Intentional duplication for float32/float64; type-specific matmul call precludes generics without boxing.
 func batchMatmulBroadcastFloat32(
 	c, a, b []float32,
 	outBatchShape, aBatchShape, bBatchShape tensor.Shape,
@@ -135,19 +198,48 @@ func batchMatmulBroadcastFloat32(
 	matrixSizeB := k * n
 	matrixSizeC := m * n
 
-	for batchIdx := range outBatchShape.NumElements() {
-		aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
-		bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
-
-		aOffset := aBatchFlat * matrixSizeA
-		bOffset := bBatchFlat * matrixSizeB
-		cOffset := batchIdx * matrixSizeC
-
-		matmulFloat32(c[cOffset:], a[aOffset:], b[bOffset:], m, k, n)
+	totalBatches := outBatchShape.NumElements()
+	if totalBatches <= batchParallelThreshold {
+		for batchIdx := range totalBatches {
+			aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
+			bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
+			off := batchIdx * matrixSizeC
+			matmulFloat32(c[off:off+matrixSizeC], a[aBatchFlat*matrixSizeA:], b[bBatchFlat*matrixSizeB:], m, k, n)
+		}
+		return
 	}
+
+	numWorkers := min(runtime.NumCPU(), totalBatches)
+	batchesPerWorker := (totalBatches + numWorkers - 1) / numWorkers
+
+	var wg sync.WaitGroup
+	for w := range numWorkers {
+		startBatch := w * batchesPerWorker
+		if startBatch >= totalBatches {
+			break
+		}
+		endBatch := min(startBatch+batchesPerWorker, totalBatches)
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for batchIdx := start; batchIdx < end; batchIdx++ {
+				aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
+				bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
+				off := batchIdx * matrixSizeC
+				// Cap the slice to exactly m*n elements so matmulFloat32's
+				// zero-initialisation loop does not overwrite adjacent batch slots.
+				matmulFloat32(c[off:off+matrixSizeC], a[aBatchFlat*matrixSizeA:], b[bBatchFlat*matrixSizeB:], m, k, n)
+			}
+		}(startBatch, endBatch)
+	}
+	wg.Wait()
 }
 
 // batchMatmulBroadcastFloat64 performs batched matrix multiplication for float64 with broadcast.
+// Batch indices are independent, so large batch counts are parallelised across CPU cores.
+// Stride slices are read-only, making concurrent access safe without locks.
+//
+//nolint:dupl // Intentional duplication for float32/float64; type-specific matmul call precludes generics without boxing.
 func batchMatmulBroadcastFloat64(
 	c, a, b []float64,
 	outBatchShape, aBatchShape, bBatchShape tensor.Shape,
@@ -161,14 +253,39 @@ func batchMatmulBroadcastFloat64(
 	matrixSizeB := k * n
 	matrixSizeC := m * n
 
-	for batchIdx := range outBatchShape.NumElements() {
-		aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
-		bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
-
-		aOffset := aBatchFlat * matrixSizeA
-		bOffset := bBatchFlat * matrixSizeB
-		cOffset := batchIdx * matrixSizeC
-
-		matmulFloat64(c[cOffset:], a[aOffset:], b[bOffset:], m, k, n)
+	totalBatches := outBatchShape.NumElements()
+	if totalBatches <= batchParallelThreshold {
+		for batchIdx := range totalBatches {
+			aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
+			bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
+			off := batchIdx * matrixSizeC
+			matmulFloat64(c[off:off+matrixSizeC], a[aBatchFlat*matrixSizeA:], b[bBatchFlat*matrixSizeB:], m, k, n)
+		}
+		return
 	}
+
+	numWorkers := min(runtime.NumCPU(), totalBatches)
+	batchesPerWorker := (totalBatches + numWorkers - 1) / numWorkers
+
+	var wg sync.WaitGroup
+	for w := range numWorkers {
+		startBatch := w * batchesPerWorker
+		if startBatch >= totalBatches {
+			break
+		}
+		endBatch := min(startBatch+batchesPerWorker, totalBatches)
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for batchIdx := start; batchIdx < end; batchIdx++ {
+				aBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, aBroadcastStrides)
+				bBatchFlat := computeFlatIndex(batchIdx, outBatchStrides, bBroadcastStrides)
+				off := batchIdx * matrixSizeC
+				// Cap the slice to exactly m*n elements so matmulFloat64's
+				// zero-initialisation loop does not overwrite adjacent batch slots.
+				matmulFloat64(c[off:off+matrixSizeC], a[aBatchFlat*matrixSizeA:], b[bBatchFlat*matrixSizeB:], m, k, n)
+			}
+		}(startBatch, endBatch)
+	}
+	wg.Wait()
 }
