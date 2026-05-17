@@ -6,15 +6,29 @@ import (
 	"github.com/born-ml/born/internal/tensor"
 )
 
+// Block sizes tuned to fit within L1 cache.
+//
+// float32: 64×64 × 4 bytes = 16 KB — fits a typical 32 KB L1 data cache.
+// float64: 32×32 × 8 bytes =  8 KB — same budget, halved dimensions.
+const (
+	blockSizeF32 = 64
+	blockSizeF64 = 32
+
+	// blockThreshold is the minimum number of multiply-accumulate operations before
+	// cache-tiled blocking pays off. Below this the loop setup overhead exceeds the
+	// cache-miss savings. Value derived from the GoMLX reference (4 MB / 4 bytes).
+	blockThreshold = 64 * 64 * 64 // ~262 144 ops
+)
+
 // MatMul performs matrix multiplication.
 // For 2D tensors: (M, K) @ (K, N) -> (M, N)
-// Uses naive O(n³) implementation for Phase 1.
-// TODO: Integrate with gonum/blas for better performance in Phase 2.
+// Uses cache-tiled blocked GEMM for large matrices; falls back to the naive
+// triple-loop for small ones where blocking overhead exceeds the benefit.
 func (cpu *CPUBackend) MatMul(a, b *tensor.RawTensor) *tensor.RawTensor {
 	aShape := a.Shape()
 	bShape := b.Shape()
 
-	// Validate dimensions
+	// Validate dimensions.
 	if len(aShape) != 2 || len(bShape) != 2 {
 		panic(fmt.Sprintf("matmul: only 2D tensors supported, got %dD and %dD", len(aShape), len(bShape)))
 	}
@@ -26,13 +40,13 @@ func (cpu *CPUBackend) MatMul(a, b *tensor.RawTensor) *tensor.RawTensor {
 		panic(fmt.Sprintf("matmul: shape mismatch [%d,%d] @ [%d,%d]", m, k, kAlt, n))
 	}
 
-	// Create result tensor
+	// Create result tensor.
 	result, err := tensor.NewRaw(tensor.Shape{m, n}, a.DType(), cpu.device)
 	if err != nil {
 		panic(fmt.Sprintf("matmul: failed to create result tensor: %v", err))
 	}
 
-	// Dispatch to type-specific implementation
+	// Dispatch to type-specific implementation.
 	switch a.DType() {
 	case tensor.Float32:
 		matmulFloat32(result.AsFloat32(), a.AsFloat32(), b.AsFloat32(), m, k, n)
@@ -49,16 +63,54 @@ func (cpu *CPUBackend) MatMul(a, b *tensor.RawTensor) *tensor.RawTensor {
 	return result
 }
 
-// matmulFloat32 performs naive matrix multiplication for float32.
-// C[i,j] = sum_k A[i,k] * B[k,j]
-// TODO: Replace with gonum/blas SGEMM for better performance.
+// matmulFloat32 multiplies A (m×k) by B (k×n) and writes the result into C (m×n).
+//
+// For matrices large enough to benefit from cache locality (m*k*n >= blockThreshold)
+// a three-level cache-tiled algorithm is used: outer loops stride in blocks that fit
+// the L1 cache, while the micro-kernel accumulates a block with sequential B access.
+// Smaller matrices fall back to the naive triple-loop.
+//
+// The caller must pass c pre-capped to exactly m*n elements.
 func matmulFloat32(c, a, b []float32, m, k, n int) {
-	// Initialize C to zero
 	for i := range c {
 		c[i] = 0
 	}
 
-	// Naive O(n³) implementation
+	if m*k*n < blockThreshold {
+		matmulNaiveFloat32(c, a, b, m, k, n)
+		return
+	}
+
+	for ii := 0; ii < m; ii += blockSizeF32 {
+		iEnd := min(ii+blockSizeF32, m)
+		for kk := 0; kk < k; kk += blockSizeF32 {
+			kEnd := min(kk+blockSizeF32, k)
+			for jj := 0; jj < n; jj += blockSizeF32 {
+				jEnd := min(jj+blockSizeF32, n)
+				matmulMicroKernelF32(c, a, b, k, n, ii, iEnd, kk, kEnd, jj, jEnd)
+			}
+		}
+	}
+}
+
+// matmulMicroKernelF32 accumulates the block product A[ii:iEnd, kk:kEnd] × B[kk:kEnd, jj:jEnd]
+// into C[ii:iEnd, jj:jEnd].
+//
+// Loop order i→k→j: aVal = a[i*k+kIdx] is hoisted out of the j-loop, and
+// b[kIdx*n+j] access is sequential (row-major), maximizing cache utilization.
+func matmulMicroKernelF32(c, a, b []float32, k, n, ii, iEnd, kk, kEnd, jj, jEnd int) {
+	for i := ii; i < iEnd; i++ {
+		for kIdx := kk; kIdx < kEnd; kIdx++ {
+			aVal := a[i*k+kIdx]
+			for j := jj; j < jEnd; j++ {
+				c[i*n+j] += aVal * b[kIdx*n+j]
+			}
+		}
+	}
+}
+
+// matmulNaiveFloat32 is the plain O(n³) fallback used for small matrices.
+func matmulNaiveFloat32(c, a, b []float32, m, k, n int) {
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			sum := float32(0)
@@ -70,11 +122,49 @@ func matmulFloat32(c, a, b []float32, m, k, n int) {
 	}
 }
 
+// matmulFloat64 multiplies A (m×k) by B (k×n) and writes the result into C (m×n).
+//
+// Identical algorithm to matmulFloat32 but with blockSizeF64 = 32 so that a
+// 32×32 block of float64 still fits within a 32 KB L1 data cache (8 KB used).
+//
+// The caller must pass c pre-capped to exactly m*n elements.
 func matmulFloat64(c, a, b []float64, m, k, n int) {
 	for i := range c {
 		c[i] = 0
 	}
 
+	if m*k*n < blockThreshold {
+		matmulNaiveFloat64(c, a, b, m, k, n)
+		return
+	}
+
+	for ii := 0; ii < m; ii += blockSizeF64 {
+		iEnd := min(ii+blockSizeF64, m)
+		for kk := 0; kk < k; kk += blockSizeF64 {
+			kEnd := min(kk+blockSizeF64, k)
+			for jj := 0; jj < n; jj += blockSizeF64 {
+				jEnd := min(jj+blockSizeF64, n)
+				matmulMicroKernelF64(c, a, b, k, n, ii, iEnd, kk, kEnd, jj, jEnd)
+			}
+		}
+	}
+}
+
+// matmulMicroKernelF64 accumulates the block product A[ii:iEnd, kk:kEnd] × B[kk:kEnd, jj:jEnd]
+// into C[ii:iEnd, jj:jEnd].
+func matmulMicroKernelF64(c, a, b []float64, k, n, ii, iEnd, kk, kEnd, jj, jEnd int) {
+	for i := ii; i < iEnd; i++ {
+		for kIdx := kk; kIdx < kEnd; kIdx++ {
+			aVal := a[i*k+kIdx]
+			for j := jj; j < jEnd; j++ {
+				c[i*n+j] += aVal * b[kIdx*n+j]
+			}
+		}
+	}
+}
+
+// matmulNaiveFloat64 is the plain O(n³) fallback used for small float64 matrices.
+func matmulNaiveFloat64(c, a, b []float64, m, k, n int) {
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			sum := float64(0)
