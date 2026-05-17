@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-17
+
+### Added
+
+- **CPU parallel BatchMatMul** — `sync.WaitGroup` + goroutines across batch dimension
+  - Threshold: B ≤ 4 → sequential, B > 4 → parallel (`runtime.NumCPU()` workers)
+  - All 4 variants: Float32, Float64, BroadcastFloat32, BroadcastFloat64
+  - Fixed race condition: capped slice prevents overlapping zero-init across goroutines
+- **CPU cache-tiled blocked MatMul** — 3-5x speedup for large matrices
+  - i-block→k-block→j-block loop order (sequential B-matrix access)
+  - Block sizes: 64 (float32, 16KB L1), 32 (float64, 8KB L1)
+  - Threshold: m×n×k < 262K → naive fallback (overhead > benefit)
+  - Micro-kernel extracted for compiler inlining
+- **AVX2 SIMD MatMul micro-kernel** via Go 1.26 `goexperiment.simd`
+  - `simd/archsimd`: LoadFloat32x8, BroadcastFloat32x8, MulAdd (FMA)
+  - 4-row × 16-wide register block, zero allocations
+  - Benchmark: 128×128 micro-kernel 3693 → 1058 ns/op (**3.49x**)
+  - Build tag: `//go:build amd64 && goexperiment.simd` + scalar fallback
+  - 13 correctness subtests
+- **GPU batched dispatch** — queue lazy ops, single `queue.Submit` on Data() access
+  - `finishAndQueueLazy` queues command buffers instead of immediate Submit
+  - `flushCommands` submits all pending in single variadic `queue.Submit(cmdBufs...)`
+  - All GPU resources (buffers + bind groups) kept alive via `lazyResources` until after Submit
+  - Before: 50+ Submits per transformer forward pass (~25ms overhead). After: 1 Submit per readback
+- **Embedding backward tests** — 5 tests covering 1D/2D shapes, duplicate indices, gradient flow, MulScalar chain
+- **Go 1.26** — minimum Go version updated from 1.25 to 1.26 for `simd/archsimd` support
+
+### Fixed
+
+- **GPU batched dispatch**: bind groups and input buffers kept alive until after queue.Submit (BUG-LAZY-DEFER-RELEASE for all resource types)
+- **GPU buffer copy**: `copyGPUBuffer` flushes pending commands + Poll before copy (prevents reading unsubmitted staging data)
+
 ## [0.8.3] - 2026-05-16
 
 ### Added

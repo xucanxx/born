@@ -498,7 +498,7 @@ model := born.LoadONNX("model.onnx")
 
 ### Q: Is Born stable enough?
 
-**A:** Current status (v0.8.3):
+**A:** Current status (v0.9.0):
 - ✅ Core API stable (tensor, nn, optim, autodiff)
 - ✅ Production-tested (MNIST 97%+, GPU 123x speedup)
 - ✅ LLM inference: LLaMA via `models/llama.LoadGGUF()`, verified on TinyLlama 1.1B Q8_0 and Q4_K_M

@@ -111,7 +111,7 @@ make install
 ### Development Setup
 
 **Requirements**:
-- Go 1.25+
+- Go 1.26+ (1.26 required for optional SIMD support via `GOEXPERIMENT=simd`)
 - Make (optional, but recommended)
 - golangci-lint (for linting)
 

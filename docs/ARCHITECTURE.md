@@ -1,7 +1,7 @@
 # Born ML Framework - Architecture
 
 **Status**: Living Document
-**Last Updated**: 2026-05-16
+**Last Updated**: 2026-05-17
 
 ---
 
@@ -111,11 +111,28 @@ GPU Op → GPU Op → GPU Op → AsFloat32()
 
 ---
 
+## CPU Backend Performance
+
+### Parallel BatchMatMul
+
+Batches are independent — parallelized via `sync.WaitGroup` + goroutines. Threshold: B ≤ 4 sequential, B > 4 parallel. Workers: `runtime.NumCPU()`.
+
+### Cache-Tiled Blocked MatMul
+
+i-block→k-block→j-block loop order keeps both A and B blocks in L1 cache. Block size: 64 (float32, 16KB), 32 (float64, 8KB). 3-5x speedup for matrices > 64×64.
+
+### AVX2 SIMD (Go 1.26+, experimental)
+
+Optional SIMD micro-kernel via `goexperiment.simd` + `simd/archsimd`. 4-row × 16-wide register block with FMA. Build with `GOEXPERIMENT=simd go build`. Scalar fallback compiles without the flag. 3.5x speedup on AVX2 hardware.
+
+---
+
 ## WebGPU Backend
 
 Pure Go GPU backend via [gogpu/wgpu](https://github.com/gogpu/wgpu) — zero CGO, zero runtime dependencies.
 
 - **Compute shaders**: Hand-written WGSL (not compiler DSL like Burn's CubeCL)
+- **Batched dispatch**: Lazy ops queue command buffers; single `queue.Submit` on first `Data()` access. Reduces 50+ submits per forward pass to 1.
 - **Buffer pool**: Reuses GPU memory allocations
 - **Pipeline cache**: Caches compiled compute pipelines
 - **Vulkan primary**: `BackendsVulkan` for compute workloads
@@ -145,6 +162,7 @@ GGUF file → gguf.ParseFile → TensorConverter → models/llama.LoadGGUF
 | Hand-written WGSL shaders | Control over GPU kernels | ADR-004 |
 | Core API over HAL-direct for wgpu | Stability, portability | ADR-005 |
 | Backward via forward composition | GPU-native gradients, Burn alignment | ADR-009 |
+| CPU parallel + GPU batching + SIMD | Performance parity with references | ADR-010 |
 
 Full ADR list: `docs/dev/ADR-*.md`
 

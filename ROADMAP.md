@@ -3,7 +3,7 @@
 > **Strategic Approach**: PyTorch-inspired API, Burn-inspired architecture, Go best practices
 > **Philosophy**: Correctness → Performance → Features
 
-**Last Updated**: 2026-05-16 | **Current Version**: v0.8.3 | **Strategy**: Core → GPU → LLM → ONNX → Inference Opt → Production → v1.0 LTS | **Milestone**: v0.8.0 (GoGPU Migration) → v0.8.1 (LLaMA Inference) → v0.8.2 (Tokenizer + Backward Ops) → v1.0.0 LTS
+**Last Updated**: 2026-05-17 | **Current Version**: v0.9.0 | **Strategy**: Core → GPU → LLM → ONNX → Inference Opt → Production → v1.0 LTS | **Milestone**: v0.8.0 (GoGPU Migration) → v0.8.1 (LLaMA Inference) → v0.8.2 (Tokenizer + Backward Ops) → v1.0.0 LTS
 
 ---
 
@@ -82,8 +82,10 @@ v0.8.1 (LLaMA Inference, GGUF Model Loading) ✅ RELEASED (2026-05-15)
        ↓ (tokenizer bug fix)
 v0.8.2 (Tokenizer Fix, Backward Ops Migration, Scalar Gradient Fix) ✅ RELEASED (2026-05-16)
        ↓ (GPU scatter-add shaders)
-v0.8.3 (GPU SelectAdd/ScatterAdd Shaders) → CURRENT (2026-05-16)
-       ↓ (CPU multi-threading, quantization improvements)
+v0.8.3 (GPU SelectAdd/ScatterAdd Shaders) ✅ RELEASED (2026-05-16)
+       ↓ (CPU parallel + GPU batching + SIMD)
+v0.9.0 (CPU Parallel, GPU Batching, AVX2 SIMD) → CURRENT (2026-05-17)
+       ↓ (quantization, production serving)
 v0.9.0 (CPU Multi-thread, PagedAttention, Kernel Fusion) → June 2026
        ↓ (scale & stability)
 v0.10.0 (Multi-GPU, SIMD, Gradient Checkpointing) → Aug 2026
@@ -193,12 +195,19 @@ v1.0.0 LTS → After API stabilization
 - Refactored: 7 backward ops migrated from CPU-fallback to forward composition (ADR-009).
 - Added: SelectAdd, ScatterAdd backend ops for Embedding/Gather backward.
 
-**v0.8.3** = GPU SelectAdd/ScatterAdd Shaders → CURRENT (2026-05-16)
-- WGSL compute shaders for scatter-add (no f32 atomics, per-destination-row/element approach)
-- Eliminates 27K GPU→CPU readbacks per backward step
-- HRM training: step time from minutes to seconds
+**v0.8.3** = GPU SelectAdd/ScatterAdd Shaders ✅ RELEASED (2026-05-16)
+- WGSL compute shaders for scatter-add (no f32 atomics)
+- 27K readbacks → 1 GPU dispatch. HRM: minutes → seconds
 
-**v0.9.0** = CPU Multi-thread & Production Serving → June 2026
+**v0.9.0** = CPU Parallel + GPU Batching + AVX2 SIMD → CURRENT (2026-05-17)
+- CPU BatchMatMul goroutine parallelism (2-4x, threshold B>4)
+- CPU cache-tiled blocked MatMul (3-5x, L1-aligned 64×64 blocks)
+- AVX2 SIMD micro-kernel via Go 1.26 `goexperiment.simd` (3.5x)
+- GPU batched dispatch: queue ops, single Submit on Data() (50→1 submits)
+- Go 1.26 minimum (for simd/archsimd support)
+- Combined CPU speedup: ~20-70x for large batch MatMul on AVX2
+
+**v0.10.0** = Quantization & Production Serving → July 2026
 - CPU multi-threaded MatMul/BatchMatMul (TASK-133)
 - PagedAttention (>90% GPU utilization)
 - Continuous Batching (10-23x throughput)
