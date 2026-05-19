@@ -80,7 +80,7 @@ func TestAutoFlush_PendingCountResets(t *testing.T) {
 
 	// Phase 1: exceed threshold.
 	result := raw
-	for i := 0; i < maxPendingBeforeFlush + 10; i++ {
+	for i := 0; i < maxPendingBeforeFlush+10; i++ {
 		result = backend.Add(result, raw)
 	}
 

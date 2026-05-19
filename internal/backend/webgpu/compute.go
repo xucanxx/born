@@ -211,6 +211,11 @@ func (b *Backend) execComputeAndRead(
 	resultBuf *wgpu.Buffer,
 	resultSize uint64,
 ) []byte {
+	// Flush any active encoder batch before issuing a synchronous submit.
+	// Without this, the active encoder's resources may still reference buffers
+	// that we are about to read or reuse, causing validation errors.
+	b.flushCommands()
+
 	// Create staging buffer for readback (MapRead | CopyDst).
 	stagingBuf, err := b.device.CreateBuffer(&wgpu.BufferDescriptor{
 		Usage: gputypes.BufferUsageMapRead | gputypes.BufferUsageCopyDst | gputypes.BufferUsageCopySrc,

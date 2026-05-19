@@ -9,13 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.1] - 2026-05-19
 
+### Added
+
+- **GPU shared encoder accumulator** ([ADR-012](docs/dev/ADR-012-gpu-encoder-batching-buffer-cache.md))
+  - One CommandEncoder for N compute passes instead of N encoders
+  - 128 Finish() calls → 1 per batch. GPU utilization 55% → 70-80%
+  - All 15 lazy ops simplified via `addComputePassToEncoder`
+  - Net -456 lines from lazy ops
+- **GPU input buffer cache**
+  - `getOrCreateInputBuffer`: caches tensor→GPU buffer by identity
+  - Weight matrices uploaded once, reused across forward+backward
+  - `clearInputBufferCache` for cleanup
+- **17 enterprise GPU tests**: shared encoder correctness (500-op chain), cache hit rate, invalidation, auto-flush, flush-on-readback, lazy chain, mixed-ops batching
+
 ### Fixed
 
 - **GPU batched dispatch**: auto-flush pending command buffers every 128 dispatches
   - Prevents Windows TDR timeout (VK_ERROR_DEVICE_LOST) on integrated GPUs
   - Before: eval passes with 13K+ dispatches accumulated without flush → GPU killed by OS
   - After: 128 ops per Submit — safe for all GPUs while still 128x fewer Submits than pre-v0.9.0
-  - 3 auto-flush tests: many-ops-without-readback, pending-count-reset, threshold-sanity
 
 ## [0.9.0] - 2026-05-17
 

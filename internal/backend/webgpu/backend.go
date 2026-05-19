@@ -31,13 +31,39 @@ type pipelineEntry struct {
 // submitted to the GPU queue, plus the intermediate result buffers that must
 // remain alive until after queue.Submit returns (BUG-LAZY-DEFER-RELEASE).
 //
-// Each lazy op produces one pendingSubmission via finishAndQueueLazy. All
-// pending submissions are flushed in a single queue.Submit call when any
-// tensor's Data() triggers ReadGPUBuffer.
+// Populated by finishActiveBatchLocked (via addComputePassToEncoder) when
+// the shared encoder is sealed. All pending submissions are flushed in a
+// single queue.Submit call when any tensor's Data() triggers ReadGPUBuffer.
 type pendingSubmission struct {
 	cmdBuffer  *wgpu.CommandBuffer
 	resultBufs []*wgpu.Buffer    // released after queue.Submit completes
 	bindGroups []*wgpu.BindGroup // released after queue.Submit completes
+}
+
+// encoderBatch accumulates multiple compute passes into a single CommandEncoder.
+// All passes are recorded into the same encoder; flush (Finish+Submit) happens
+// at threshold or on Data() access. This eliminates per-op CreateCommandEncoder
+// overhead and reduces driver synchronization points.
+type encoderBatch struct {
+	encoder    *wgpu.CommandEncoder
+	copies     []bufferCopyEntry    // CopyBufferToBuffer entries added before Finish
+	resultBufs []*wgpu.Buffer       // released after Submit
+	bindGroups []*wgpu.BindGroup    // released after Submit
+	count      int
+}
+
+// bufferCopyEntry records a single CopyBufferToBuffer to be appended to the
+// active encoder immediately before Finish().
+type bufferCopyEntry struct {
+	src, dst *wgpu.Buffer
+	size     uint64
+}
+
+// cachedBuffer holds a GPU storage buffer that was created from a CPU RawTensor
+// and is kept alive across multiple op invocations.
+type cachedBuffer struct {
+	buffer *wgpu.Buffer
+	size   uint64
 }
 
 // Backend implements tensor operations on GPU using WebGPU.
@@ -65,13 +91,34 @@ type Backend struct {
 	LazyMode bool
 
 	// Pending command buffers queued for batched submission.
-	// Populated by finishAndQueueLazy; drained by flushCommands.
+	// Populated by addComputePassToEncoder/finishAndQueueLazy; drained by flushCommands.
 	// Protected by pendingMu. This is the core of the batched-dispatch
 	// optimization: instead of 1 Submit per op (~500 µs each), all pending
 	// command buffers are submitted in a single queue.Submit call when the
 	// first Data() access triggers ReadGPUBuffer.
 	pending   []pendingSubmission
 	pendingMu sync.Mutex
+
+	// activeBatch accumulates compute passes into a single shared CommandEncoder.
+	// Protected by pendingMu (same lock as pending to avoid ordering issues).
+	// Flushed (Finish+Submit) when count reaches maxPendingBeforeFlush or when
+	// flushCommands/copyGPUBuffer/execComputeAndRead need a clean GPU state.
+	activeBatch encoderBatch
+
+	// inputBufferCache caches GPU storage buffers created from CPU RawTensors.
+	// Keyed by *RawTensor pointer identity — reuses the same GPU buffer when the
+	// same weight tensor (e.g. Linear.weight) is passed to multiple ops in a
+	// forward+backward pass, avoiding redundant host→device uploads.
+	//
+	// ONLY CPU tensors are cached. Lazy (GPU) tensors are transient intermediates
+	// whose staging buffers are released after readback — they must NOT be cached.
+	//
+	// Cleared in Backend.Release() and can be cleared manually via
+	// ClearInputBufferCache() between training steps if weights change.
+	inputBufferCache struct {
+		mu    sync.RWMutex
+		cache map[*tensor.RawTensor]*cachedBuffer
+	}
 
 	// Memory tracking
 	memoryStats struct {
@@ -158,6 +205,9 @@ func (b *Backend) SetLazyMode(enabled bool) {
 // acquire + nil check).
 func (b *Backend) flushCommands() {
 	b.pendingMu.Lock()
+	// Finish any active encoder first — its command buffer must be in b.pending
+	// before we drain the pending slice below.
+	b.finishActiveBatchLocked()
 	if len(b.pending) == 0 {
 		b.pendingMu.Unlock()
 		return
@@ -193,12 +243,21 @@ func (b *Backend) flushCommands() {
 // Release releases all WebGPU resources.
 // Must be called when the backend is no longer needed.
 func (b *Backend) Release() {
+	// Flush any accumulated but not-yet-submitted encoder before shutdown.
+	// This prevents resource-leaked buffers from the active batch.
+	b.pendingMu.Lock()
+	b.finishActiveBatchLocked()
+	b.pendingMu.Unlock()
+
 	// Ensure GPU is fully idle before destroying resources.
 	// Without this, rapid create/destroy cycles (e.g. test suites) can
 	// overwhelm the driver on iGPUs with shared memory.
 	if b.device != nil {
 		b.device.Poll(wgpu.PollWait)
 	}
+
+	// Release cached input buffers before device teardown.
+	b.clearInputBufferCache()
 
 	b.mu.Lock()
 	defer b.mu.Unlock()
