@@ -38,6 +38,7 @@ func NewRegistry() *Registry {
 	r.registerNormalizationOps()
 	r.registerLogicalOps()
 	r.registerPoolOps()
+	r.registerConvOps()
 
 	return r
 }
