@@ -191,3 +191,11 @@ func TestRegisterAveragePoolOp(t *testing.T) {
 		t.Error("Expected AveragePool operator to be registered")
 	}
 }
+
+func TestRegisterConvOp(t *testing.T) {
+	r := NewRegistry()
+
+	if _, ok := r.Get("Conv"); !ok {
+		t.Error("Expected Conv operator to be registered")
+	}
+}
