@@ -175,3 +175,19 @@ func TestRegisterReduceMinOp(t *testing.T) {
 		t.Error("Expected ReduceMin operator to be registered")
 	}
 }
+
+func TestRegisterMaxPoolOp(t *testing.T) {
+	r := NewRegistry()
+
+	if _, ok := r.Get("MaxPool"); !ok {
+		t.Error("Expected MaxPool operator to be registered")
+	}
+}
+
+func TestRegisterAveragePoolOp(t *testing.T) {
+	r := NewRegistry()
+
+	if _, ok := r.Get("AveragePool"); !ok {
+		t.Error("Expected AveragePool operator to be registered")
+	}
+}
