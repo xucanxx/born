@@ -19,11 +19,12 @@ func TestAssertApproxEqual_Absolute(t *testing.T) {
 		{name: "at tolerance boundary", a: 1.0, b: 1.099999, abs: 0.1, want: true},
 		{name: "just over tolerance", a: 1.0, b: 1.100001, abs: 0.1, want: false},
 		{name: "zero diff", a: 0.0, b: 0.0, abs: 1e-9, want: true},
-		{name: "both zero and no tolerance", a: 0.0, b: 0.0, abs: 0.0, want: false},
+		{name: "both zero and no tolerance", a: 0.0, b: 0.0, abs: 0.0, want: true},
 		{name: "negative within tolerance", a: -1.0, b: -1.05, abs: 0.1, want: true},
 		{name: "negative over tolerance", a: -1.0, b: -1.2, abs: 0.1, want: false},
 		{name: "crossing zero within", a: -0.04, b: 0.04, abs: 0.1, want: true},
 		{name: "crossing zero outside", a: -0.06, b: 0.06, abs: 0.1, want: false},
+		{name: "abs less than 0.0", a: 1.0, b: 1.0, abs: -0.1, want: false},
 	}
 
 	for _, tt := range tests {
@@ -56,7 +57,8 @@ func TestAssertApproxEqual_Relative(t *testing.T) {
 		{name: "values near zero outside", a: 1e-8, b: 1.3e-8, rel: 0.1, want: false},
 		{name: "negative values within", a: -1.0, b: -1.05, rel: 0.1, want: true},
 		{name: "negative values outside", a: -1.0, b: -1.3, rel: 0.1, want: false},
-		{name: "zero rel tolerance exact match", a: 1.0, b: 1.0, rel: 0.0, want: false},
+		{name: "zero rel tolerance exact match", a: 1.0, b: 1.0, rel: 0.0, want: true},
+		{name: "rel greater than 1.0", a: 1.0, b: 1.0, rel: 1.1, want: false},
 	}
 
 	for _, tt := range tests {
@@ -87,6 +89,8 @@ func TestAssertApproxEqual_RelAbs(t *testing.T) {
 		{name: "over both tolerances", a: 1.0, b: 1.3, rel: 0.1, abs: 0.1, want: false},
 		{name: "large values fail rel pass abs", a: 1e6, b: 1.01e6, rel: 1e-9, abs: 0.1, want: false},
 		{name: "tight rel loose abs", a: 1.0, b: 1.01, rel: 1e-9, abs: 0.1, want: true},
+		{name: "abs less than 0.0", a: 1.0, b: 1.0, abs: -0.1, want: false},
+		{name: "rel greater than 1.0", a: 1.0, b: 1.0, rel: 1.1, want: false},
 	}
 
 	for _, tt := range tests {
@@ -115,13 +119,16 @@ func TestAssertApproxEqual_WithDefaultTolerance(t *testing.T) {
 		{name: "float64 close", a: 1.0, b: 1.00005, is32: false},
 	}
 
+	tol32 := NewDefaultTolerance[float32]()
+	tol64 := NewDefaultTolerance[float64]()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
 			if tt.is32 {
-				err = AssertApproxEqual(float32(tt.a), float32(tt.b), NewDefaultTolerance[float32]())
+				err = AssertApproxEqual(float32(tt.a), float32(tt.b), tol32)
 			} else {
-				err = AssertApproxEqual(tt.a, tt.b, NewDefaultTolerance[float64]())
+				err = AssertApproxEqual(tt.a, tt.b, tol64)
 			}
 			if err != nil {
 				t.Errorf("expected success, got: %v", err)
@@ -130,30 +137,37 @@ func TestAssertApproxEqual_WithDefaultTolerance(t *testing.T) {
 	}
 }
 
-// TestAssertApproxEqual_Special covers NaN and Inf inputs, which should
-// always produce a failure since arithmetic on these produces NaN diffs.
+// TestAssertApproxEqual_Special covers NaN and Inf inputs.
 func TestAssertApproxEqual_Special(t *testing.T) {
 	tol := &Tolerance[float64]{TolType: Abs, Abs: 0.1}
 
 	tests := []struct {
 		name string
 		a, b float64
+		want bool
 	}{
-		{name: "a is NaN", a: math.NaN(), b: 1.0},
-		{name: "b is NaN", a: 1.0, b: math.NaN()},
-		{name: "both NaN", a: math.NaN(), b: math.NaN()},
-		{name: "a is Inf", a: math.Inf(1), b: 1.0},
-		{name: "b is Inf", a: 1.0, b: math.Inf(1)},
-		{name: "both Inf", a: math.Inf(1), b: math.Inf(1)},
-		{name: "a is -Inf", a: math.Inf(-1), b: 1.0},
-		{name: "b is -Inf", a: 1.0, b: math.Inf(-1)},
-		{name: "both -Inf", a: math.Inf(-1), b: math.Inf(-1)},
+		{name: "a is NaN", a: math.NaN(), b: 1.0, want: false},
+		{name: "b is NaN", a: 1.0, b: math.NaN(), want: false},
+		{name: "both NaN", a: math.NaN(), b: math.NaN(), want: true},
+		{name: "a is Inf", a: math.Inf(1), b: 1.0, want: false},
+		{name: "b is Inf", a: 1.0, b: math.Inf(1), want: false},
+		{name: "both Inf", a: math.Inf(1), b: math.Inf(1), want: true},
+		{name: "a is -Inf", a: math.Inf(-1), b: 1.0, want: false},
+		{name: "b is -Inf", a: 1.0, b: math.Inf(-1), want: false},
+		{name: "both -Inf", a: math.Inf(-1), b: math.Inf(-1), want: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := AssertApproxEqual(tt.a, tt.b, tol); err == nil {
-				t.Errorf("expected error for %s input", tt.name)
+			err := AssertApproxEqual(tt.a, tt.b, tol)
+			if tt.want {
+				if err != nil {
+					t.Errorf("expected success, got: %v", err)
+				}
+			} else {
+				if err == nil {
+					t.Errorf("expected error for %s input", tt.name)
+				}
 			}
 		})
 	}
