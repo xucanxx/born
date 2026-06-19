@@ -21,8 +21,6 @@ const (
 
 // Tolerance holds parameters for approximate floating-point equality checks.
 // Abs and Rel must be > 0 or every check will fail (strict less-than).
-//
-// Construct one with NewDefaultTolerance.
 type Tolerance[T float32 | float64] struct {
 	TolType TolType
 	Abs     T // absolute tolerance
@@ -54,7 +52,7 @@ func NewDefaultTolerance[T float32 | float64]() *Tolerance[T] {
 //
 // Absolute tolerance: passes when |a-b| < tol.Abs.
 // Relative tolerance: passes when |a-b| < tol.Rel * max(|a|, |b|).
-// Combined (RelAbs): passes when either condition is met.
+// Combined (RelAbs): passes when |a-b| < max(tol.Rel * |a+b|, tol.Abs).
 //
 // Returns nil if the values are approximately equal, or an error describing
 // which tolerance check failed.
@@ -114,16 +112,15 @@ func checkAbs[T float32 | float64](a, b, abs T) error {
 // checkRelAbs is a helper to compare two values using relative and
 // absolute tolerance.
 //
-// Returns nil if |x-y| < max(rel * |x+y|, abs).
+// Returns nil if |a-b| < max(rel * |a+b|, abs).
 func checkRelAbs[T float32 | float64](a, b, rel, abs T) error {
 	absDiff := math.Abs(float64(a - b))
-	// handles NaN case, if a or b is NaN then absDiff compared to anything will be false
-	if absDiff < float64(abs) {
-		return nil
-	}
 	relTol := float64(rel) * math.Abs(float64(a+b))
-	if absDiff < relTol {
+	moreLenientTol := math.Max(float64(abs), relTol)
+
+	// handles NaN case, if a or b is NaN then absDiff compared to anything will be false
+	if absDiff < moreLenientTol {
 		return nil
 	}
-	return fmt.Errorf("relative (%f >= %f) and absolute (%f >= %f) tolerance failure", absDiff, abs, absDiff, relTol)
+	return fmt.Errorf("relAbs tolerance failure: %f >= %f", absDiff, moreLenientTol)
 }
