@@ -650,8 +650,8 @@ func TestMulInplaceFloat32Large_SIMDMatchesScalar(t *testing.T) {
 	}
 }
 
-// TestDivInplaceFloat32MinFloat_SIMDMatchesScalar tests division producing
-// results near MinFloat32 (~1.18e-38).
+// TestDivInplaceFloat32MinFloat_SIMDMatchesScalar tests inplace
+// division producing results near MinFloat32 (~1.18e-38).
 //
 // Expected range: [-1e-38, 1e-38].
 func TestDivInplaceFloat32MinFloat_SIMDMatchesScalar(t *testing.T) {
