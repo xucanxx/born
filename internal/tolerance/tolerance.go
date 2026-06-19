@@ -20,6 +20,9 @@ const (
 )
 
 // Tolerance holds parameters for approximate floating-point equality checks.
+//
+// Rel is constrained to < 1.0 in validation checks.
+// Abs is constrained to >= 0.0 in validation checks.
 type Tolerance[T float32 | float64] struct {
 	TolType TolType
 	Abs     T // absolute tolerance
