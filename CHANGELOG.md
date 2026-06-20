@@ -5,6 +5,15 @@ All notable changes to the Born ML Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Tolerance package** — `internal/tolerance` for approximate floating-point equality with Burn-aligned RelAbs formula, input validation, NaN/Inf handling. Replaces ad-hoc `maxDiff` checks in SIMD tests ([#107](https://github.com/born-ml/born/pull/107) by [@bennibbelink](https://github.com/bennibbelink))
+  - Three modes: Abs, Rel, RelAbs (combined, default)
+  - `AssertAllApproxEqual` for slice comparisons
+  - Edge-case tests: MinFloat, Large, negative values, NaN, Inf
+
 ## [0.9.10] - 2026-06-17
 
 ### Added
