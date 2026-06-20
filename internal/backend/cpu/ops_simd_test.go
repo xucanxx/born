@@ -1,10 +1,11 @@
 package cpu
 
 import (
-	"math"
 	"math/rand"
 	"strconv"
 	"testing"
+
+	"github.com/born-ml/born/internal/tolerance"
 )
 
 // TestAddInplaceFloat32_SIMDMatchesScalar verifies that the SIMD add-inplace
@@ -13,8 +14,6 @@ func TestAddInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdAddInplaceFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -37,11 +36,9 @@ func TestAddInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 
 			addInplaceFloat32(a, b)
 
-			for i := range a {
-				diff := math.Abs(float64(a[i] - aScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -53,8 +50,6 @@ func TestSubInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdSubInplaceFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -77,24 +72,20 @@ func TestSubInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 
 			subInplaceFloat32(a, b)
 
-			for i := range a {
-				diff := math.Abs(float64(a[i] - aScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestMulInplaceFloat32_SIMDMatchesScalar verifies that the SIMD mul-inplace
-// kernel produces results matching the scalar fallback within float32 ULP noise.
+// implementation produces results matching the scalar fallback within float32 ULP noise.
 func TestMulInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdMulInplaceFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -117,24 +108,20 @@ func TestMulInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 
 			mulInplaceFloat32(a, b)
 
-			for i := range a {
-				diff := math.Abs(float64(a[i] - aScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestDivInplaceFloat32_SIMDMatchesScalar verifies that the SIMD div-inplace
-// kernel produces results matching the scalar fallback within float32 ULP noise.
+// implementation produces results matching the scalar fallback within float32 ULP noise.
 func TestDivInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdDivInplaceFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -157,11 +144,9 @@ func TestDivInplaceFloat32_SIMDMatchesScalar(t *testing.T) {
 
 			divInplaceFloat32(a, b)
 
-			for i := range a {
-				diff := math.Abs(float64(a[i] - aScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -173,8 +158,6 @@ func TestAddVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdAddVectorizedFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -197,11 +180,9 @@ func TestAddVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float32, n)
 			addVectorizedFloat32(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(float64(dstSIMD[i] - dstScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -213,8 +194,6 @@ func TestSubVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdSubVectorizedFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -237,24 +216,20 @@ func TestSubVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float32, n)
 			subVectorizedFloat32(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(float64(dstSIMD[i] - dstScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestMulVectorizedFloat32_SIMDMatchesScalar verifies that the SIMD mul-vectorized
-// kernel produces results matching the scalar fallback within float32 ULP noise.
+// implementation produces results matching the scalar fallback within float32 ULP noise.
 func TestMulVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdMulVectorizedFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -277,24 +252,20 @@ func TestMulVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float32, n)
 			mulVectorizedFloat32(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(float64(dstSIMD[i] - dstScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestDivVectorizedFloat32_SIMDMatchesScalar verifies that the SIMD div-vectorized
-// kernel produces results matching the scalar fallback within float32 ULP noise.
+// implementation produces results matching the scalar fallback within float32 ULP noise.
 func TestDivVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 	if simdDivVectorizedFloat32 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-5
 
 	sizes := []int{1, 3, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -317,11 +288,9 @@ func TestDivVectorizedFloat32_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float32, n)
 			divVectorizedFloat32(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(float64(dstSIMD[i] - dstScalar[i]))
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.8f scalar=%.8f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float32]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -333,8 +302,6 @@ func TestAddInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdAddInplaceFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -357,11 +324,9 @@ func TestAddInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 
 			addInplaceFloat64(a, b)
 
-			for i := range a {
-				diff := math.Abs(a[i] - aScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -373,8 +338,6 @@ func TestSubInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdSubInplaceFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -397,24 +360,20 @@ func TestSubInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 
 			subInplaceFloat64(a, b)
 
-			for i := range a {
-				diff := math.Abs(a[i] - aScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestMulInplaceFloat64_SIMDMatchesScalar verifies that the SIMD mul-inplace
-// kernel produces results matching the scalar fallback within float64 ULP noise.
+// implementation produces results matching the scalar fallback within float64 ULP noise.
 func TestMulInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdMulInplaceFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -437,24 +396,20 @@ func TestMulInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 
 			mulInplaceFloat64(a, b)
 
-			for i := range a {
-				diff := math.Abs(a[i] - aScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestDivInplaceFloat64_SIMDMatchesScalar verifies that the SIMD div-inplace
-// kernel produces results matching the scalar fallback within float64 ULP noise.
+// implementation produces results matching the scalar fallback within float64 ULP noise.
 func TestDivInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdDivInplaceFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -477,11 +432,9 @@ func TestDivInplaceFloat64_SIMDMatchesScalar(t *testing.T) {
 
 			divInplaceFloat64(a, b)
 
-			for i := range a {
-				diff := math.Abs(a[i] - aScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, a[i], aScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -493,8 +446,6 @@ func TestAddVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdAddVectorizedFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -517,11 +468,9 @@ func TestAddVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float64, n)
 			addVectorizedFloat64(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(dstSIMD[i] - dstScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
@@ -533,8 +482,6 @@ func TestSubVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdSubVectorizedFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -557,24 +504,20 @@ func TestSubVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float64, n)
 			subVectorizedFloat64(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(dstSIMD[i] - dstScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestMulVectorizedFloat64_SIMDMatchesScalar verifies that the SIMD mul-vectorized
-// kernel produces results matching the scalar fallback within float64 ULP noise.
+// implementation produces results matching the scalar fallback within float64 ULP noise.
 func TestMulVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdMulVectorizedFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -597,24 +540,20 @@ func TestMulVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float64, n)
 			mulVectorizedFloat64(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(dstSIMD[i] - dstScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
 // TestDivVectorizedFloat64_SIMDMatchesScalar verifies that the SIMD div-vectorized
-// kernel produces results matching the scalar fallback within float64 ULP noise.
+// implementation produces results matching the scalar fallback within float64 ULP noise.
 func TestDivVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 	if simdDivVectorizedFloat64 == nil {
 		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
-
-	const maxDiff = 1e-10
 
 	sizes := []int{1, 3, 4, 7, 8, 13, 16, 31, 32, 64, 100, 128, 256, 1024}
 
@@ -637,13 +576,539 @@ func TestDivVectorizedFloat64_SIMDMatchesScalar(t *testing.T) {
 			dstSIMD := make([]float64, n)
 			divVectorizedFloat64(dstSIMD, a, b)
 
-			for i := range dstSIMD {
-				diff := math.Abs(dstSIMD[i] - dstScalar[i])
-				if diff > maxDiff {
-					t.Fatalf("element[%d]: SIMD=%.15f scalar=%.15f diff=%.2e", i, dstSIMD[i], dstScalar[i], diff)
-				}
+			tol := tolerance.NewDefaultTolerance[float64]()
+			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+				t.Fatal(err)
 			}
 		})
+	}
+}
+
+// TestMulInplaceFloat32MinFloat_SIMDMatchesScalar tests inplace
+// multiplication producing results near MinFloat32 (~1.18e-38).
+//
+// Expected range: [-1e-38, 1e-38].
+func TestMulInplaceFloat32MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdMulInplaceFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(100))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e-19
+		b[i] = (rng.Float32()*2 - 1) * 1e-19
+	}
+
+	aScalar := make([]float32, n)
+	copy(aScalar, a)
+	saved := simdMulInplaceFloat32
+	simdMulInplaceFloat32 = nil
+	mulInplaceFloat32(aScalar, b)
+	simdMulInplaceFloat32 = saved
+
+	mulInplaceFloat32(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulInplaceFloat32Large_SIMDMatchesScalar tests inplace
+// multiplication producing results near MaxFloat32 (~3.4e38).
+//
+// Expected range: [-1e30, 1e30].
+func TestMulInplaceFloat32Large_SIMDMatchesScalar(t *testing.T) {
+	if simdMulInplaceFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(101))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e15
+		b[i] = (rng.Float32()*2 - 1) * 1e15
+	}
+
+	aScalar := make([]float32, n)
+	copy(aScalar, a)
+	saved := simdMulInplaceFloat32
+	simdMulInplaceFloat32 = nil
+	mulInplaceFloat32(aScalar, b)
+	simdMulInplaceFloat32 = saved
+
+	mulInplaceFloat32(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivInplaceFloat32MinFloat_SIMDMatchesScalar tests inplace
+// division producing results near MinFloat32 (~1.18e-38).
+//
+// Expected range: [-1e-38, 1e-38].
+func TestDivInplaceFloat32MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdDivInplaceFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(102))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e-19
+		b[i] = (rng.Float32()*2 - 1) * 1e19
+	}
+
+	aScalar := make([]float32, n)
+	copy(aScalar, a)
+	saved := simdDivInplaceFloat32
+	simdDivInplaceFloat32 = nil
+	divInplaceFloat32(aScalar, b)
+	simdDivInplaceFloat32 = saved
+
+	divInplaceFloat32(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivInplaceFloat32Large_SIMDMatchesScalar tests inplace
+// division producing results near MaxFloat32 (~3.4e38).
+//
+// Expected range: [-1e38, 1e38].
+func TestDivInplaceFloat32Large_SIMDMatchesScalar(t *testing.T) {
+	if simdDivInplaceFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(103))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e19
+		b[i] = 1e-19 + rng.Float32()*1e-19 // [1e-19, 2e-19); sign of a determines quotient sign
+	}
+
+	aScalar := make([]float32, n)
+	copy(aScalar, a)
+	saved := simdDivInplaceFloat32
+	simdDivInplaceFloat32 = nil
+	divInplaceFloat32(aScalar, b)
+	simdDivInplaceFloat32 = saved
+
+	divInplaceFloat32(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulVectorizedFloat32MinFloat_SIMDMatchesScalar tests vectorized
+// multiplication producing results near MinFloat32 (~1.18e-38).
+//
+// Expected range: [-1e-38, 1e-38].
+func TestMulVectorizedFloat32MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdMulVectorizedFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(104))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e-19
+		b[i] = (rng.Float32()*2 - 1) * 1e-19
+	}
+
+	dstScalar := make([]float32, n)
+	saved := simdMulVectorizedFloat32
+	simdMulVectorizedFloat32 = nil
+	mulVectorizedFloat32(dstScalar, a, b)
+	simdMulVectorizedFloat32 = saved
+
+	dstSIMD := make([]float32, n)
+	mulVectorizedFloat32(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulVectorizedFloat32Large_SIMDMatchesScalar tests vectorized
+// multiplication producing results near MaxFloat32 (~3.4e38).
+//
+// Expected range: [-1e30, 1e30].
+func TestMulVectorizedFloat32Large_SIMDMatchesScalar(t *testing.T) {
+	if simdMulVectorizedFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(105))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e15
+		b[i] = (rng.Float32()*2 - 1) * 1e15
+	}
+
+	dstScalar := make([]float32, n)
+	saved := simdMulVectorizedFloat32
+	simdMulVectorizedFloat32 = nil
+	mulVectorizedFloat32(dstScalar, a, b)
+	simdMulVectorizedFloat32 = saved
+
+	dstSIMD := make([]float32, n)
+	mulVectorizedFloat32(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivVectorizedFloat32MinFloat_SIMDMatchesScalar tests vectorized
+// division producing results near MinFloat32 (~1.18e-38).
+//
+// Expected range: [-1e-38, 1e-38].
+func TestDivVectorizedFloat32MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdDivVectorizedFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(106))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e-19
+		b[i] = (rng.Float32()*2 - 1) * 1e19
+	}
+
+	dstScalar := make([]float32, n)
+	saved := simdDivVectorizedFloat32
+	simdDivVectorizedFloat32 = nil
+	divVectorizedFloat32(dstScalar, a, b)
+	simdDivVectorizedFloat32 = saved
+
+	dstSIMD := make([]float32, n)
+	divVectorizedFloat32(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivVectorizedFloat32Large_SIMDMatchesScalar tests vectorized
+// division producing results near MaxFloat32 (~3.4e38).
+//
+// Expected range: [-1e38, 1e38].
+func TestDivVectorizedFloat32Large_SIMDMatchesScalar(t *testing.T) {
+	if simdDivVectorizedFloat32 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(107))
+	a := make([]float32, n)
+	b := make([]float32, n)
+	for i := range a {
+		a[i] = (rng.Float32()*2 - 1) * 1e19
+		b[i] = 1e-19 + rng.Float32()*1e-19
+	}
+
+	dstScalar := make([]float32, n)
+	saved := simdDivVectorizedFloat32
+	simdDivVectorizedFloat32 = nil
+	divVectorizedFloat32(dstScalar, a, b)
+	simdDivVectorizedFloat32 = saved
+
+	dstSIMD := make([]float32, n)
+	divVectorizedFloat32(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float32]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulInplaceFloat64MinFloat_SIMDMatchesScalar tests inplace
+// multiplication producing results near MinFloat64 (~2.2e-308).
+//
+// Expected range: [-1e-308, 1e-308].
+func TestMulInplaceFloat64MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdMulInplaceFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(108))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e-154
+		b[i] = (rng.Float64()*2 - 1) * 1e-154
+	}
+
+	aScalar := make([]float64, n)
+	copy(aScalar, a)
+	saved := simdMulInplaceFloat64
+	simdMulInplaceFloat64 = nil
+	mulInplaceFloat64(aScalar, b)
+	simdMulInplaceFloat64 = saved
+
+	mulInplaceFloat64(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulInplaceFloat64Large_SIMDMatchesScalar tests inplace
+// multiplication producing results near MaxFloat64 (~1.8e308).
+//
+// Expected range: [-1e300, 1e300].
+func TestMulInplaceFloat64Large_SIMDMatchesScalar(t *testing.T) {
+	if simdMulInplaceFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(109))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e150
+		b[i] = (rng.Float64()*2 - 1) * 1e150
+	}
+
+	aScalar := make([]float64, n)
+	copy(aScalar, a)
+	saved := simdMulInplaceFloat64
+	simdMulInplaceFloat64 = nil
+	mulInplaceFloat64(aScalar, b)
+	simdMulInplaceFloat64 = saved
+
+	mulInplaceFloat64(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivInplaceFloat64MinFloat_SIMDMatchesScalar tests inplace
+// division producing results near MinFloat64 (~2.2e-308).
+//
+// Expected range: [-1e-308, 1e-308].
+func TestDivInplaceFloat64MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdDivInplaceFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(110))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e-154
+		b[i] = (rng.Float64()*2 - 1) * 1e154
+	}
+
+	aScalar := make([]float64, n)
+	copy(aScalar, a)
+	saved := simdDivInplaceFloat64
+	simdDivInplaceFloat64 = nil
+	divInplaceFloat64(aScalar, b)
+	simdDivInplaceFloat64 = saved
+
+	divInplaceFloat64(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivInplaceFloat64Large_SIMDMatchesScalar tests inplace
+// division producing results near MaxFloat64 (~1.8e308).
+//
+// Expected range: [-1e308, 1e308].
+func TestDivInplaceFloat64Large_SIMDMatchesScalar(t *testing.T) {
+	if simdDivInplaceFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(111))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e154
+		b[i] = 1e-154 + rng.Float64()*1e-154
+	}
+
+	aScalar := make([]float64, n)
+	copy(aScalar, a)
+	saved := simdDivInplaceFloat64
+	simdDivInplaceFloat64 = nil
+	divInplaceFloat64(aScalar, b)
+	simdDivInplaceFloat64 = saved
+
+	divInplaceFloat64(a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(aScalar, a, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulVectorizedFloat64MinFloat_SIMDMatchesScalar tests vectorized
+// multiplication producing results near MinFloat64 (~2.2e-308).
+//
+// Expected range: [-1e-308, 1e-308].
+func TestMulVectorizedFloat64MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdMulVectorizedFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(112))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e-154
+		b[i] = (rng.Float64()*2 - 1) * 1e-154
+	}
+
+	dstScalar := make([]float64, n)
+	saved := simdMulVectorizedFloat64
+	simdMulVectorizedFloat64 = nil
+	mulVectorizedFloat64(dstScalar, a, b)
+	simdMulVectorizedFloat64 = saved
+
+	dstSIMD := make([]float64, n)
+	mulVectorizedFloat64(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestMulVectorizedFloat64Large_SIMDMatchesScalar tests vectorized
+// multiplication producing results near MaxFloat64 (~1.8e308).
+//
+// Expected range: [-1e300, 1e300].
+func TestMulVectorizedFloat64Large_SIMDMatchesScalar(t *testing.T) {
+	if simdMulVectorizedFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(113))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e150
+		b[i] = (rng.Float64()*2 - 1) * 1e150
+	}
+
+	dstScalar := make([]float64, n)
+	saved := simdMulVectorizedFloat64
+	simdMulVectorizedFloat64 = nil
+	mulVectorizedFloat64(dstScalar, a, b)
+	simdMulVectorizedFloat64 = saved
+
+	dstSIMD := make([]float64, n)
+	mulVectorizedFloat64(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivVectorizedFloat64MinFloat_SIMDMatchesScalar tests vectorized
+// division producing results near MinFloat64 (~2.2e-308).
+//
+// Expected range: [-1e-308, 1e-308].
+func TestDivVectorizedFloat64MinFloat_SIMDMatchesScalar(t *testing.T) {
+	if simdDivVectorizedFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(114))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e-154
+		b[i] = (rng.Float64()*2 - 1) * 1e154
+	}
+
+	dstScalar := make([]float64, n)
+	saved := simdDivVectorizedFloat64
+	simdDivVectorizedFloat64 = nil
+	divVectorizedFloat64(dstScalar, a, b)
+	simdDivVectorizedFloat64 = saved
+
+	dstSIMD := make([]float64, n)
+	divVectorizedFloat64(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDivVectorizedFloat64Large_SIMDMatchesScalar tests vectorized
+// division producing results near MaxFloat64 (~1.8e308).
+//
+// Expected range: [-1e308, 1e308].
+func TestDivVectorizedFloat64Large_SIMDMatchesScalar(t *testing.T) {
+	if simdDivVectorizedFloat64 == nil {
+		t.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
+	}
+
+	const n = 64
+	rng := rand.New(rand.NewSource(115))
+	a := make([]float64, n)
+	b := make([]float64, n)
+	for i := range a {
+		a[i] = (rng.Float64()*2 - 1) * 1e154
+		b[i] = 1e-154 + rng.Float64()*1e-154
+	}
+
+	dstScalar := make([]float64, n)
+	saved := simdDivVectorizedFloat64
+	simdDivVectorizedFloat64 = nil
+	divVectorizedFloat64(dstScalar, a, b)
+	simdDivVectorizedFloat64 = saved
+
+	dstSIMD := make([]float64, n)
+	divVectorizedFloat64(dstSIMD, a, b)
+
+	tol := tolerance.NewDefaultTolerance[float64]()
+	if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+		t.Fatal(err)
 	}
 }
 
