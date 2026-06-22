@@ -1,7 +1,7 @@
 # Born ML Framework - Architecture
 
 **Status**: Living Document
-**Last Updated**: 2026-05-27
+**Last Updated**: 2026-06-20
 
 ---
 
@@ -121,22 +121,29 @@ Batches are independent — parallelized via `sync.WaitGroup` + goroutines. Thre
 
 i-block→k-block→j-block loop order keeps both A and B blocks in L1 cache. Block size: 64 (float32, 16KB), 32 (float64, 8KB). 3-5x speedup for matrices > 64×64.
 
-### SIMD (Go 1.26+, `goexperiment.simd`)
+### SIMD Acceleration
 
-Two levels of SIMD acceleration, enabled with `GOEXPERIMENT=simd go build`:
+Three-layer SIMD architecture with always-on dispatch via `golang.org/x/sys/cpu`:
 
-**MatMul micro-kernel** — 4-row × 16-wide AVX2 register block with FMA. 3.5x speedup on 128×128 matrices.
+| Layer | Build | Platform |
+|-------|-------|----------|
+| **Vendored asm** (avo-generated Plan 9 `.s`) | Default `go build` | amd64 |
+| **archsimd** (Go 1.26+ intrinsics) | `GOEXPERIMENT=simd` | amd64 |
+| **Scalar fallback** | Always | All platforms |
 
-**Element-wise arithmetic** — Add, Sub, Mul, Div with runtime ISA dispatch:
+**AVX2+FMA GEMM micro-kernel** — 6×16 register-blocked (12 YMM accumulators), avo-generated. BirdNET v2.4: 1450ms → 408ms per inference (3.55× end-to-end). Allocation-free via pooled packing scratch (`sync.Pool`).
 
-| Type | AVX (256-bit) | AVX2 (256-bit) | AVX-512 (512-bit) | Speedup |
-|------|:---:|:---:|:---:|---------|
-| float32 | add/sub/mul/div | — | add/sub/mul/div | 3.5–5.4x |
-| float64 | add/sub/mul/div | — | add/sub/mul/div | 1.8–2.3x |
-| int32 | — | add/sub/mul | add/sub/mul | 2.9–4.9x |
-| int64 | — | add/sub | add/sub/mul | 1.6–2.5x |
+**Vectorized sigmoid/SiLU** — Cephes expf approximation (~1 ULP). BirdNET sigmoid/exp: 18% → 3% of inference time.
 
-Detection via `archsimd.X86.AVX()`/`AVX2()`/`AVX512()`. Function pointer dispatch — zero overhead when SIMD unavailable. Scalar fallback compiles without the flag.
+**AVX2 depthwise 3×3** — 9 taps in persistent YMM registers, 11.6× geomean speedup.
+
+**Element-wise arithmetic** — Add, Sub, Mul, Div for float32/float64/int32/int64.
+
+**Tolerance package** (`internal/tolerance`) — Burn-aligned approximate equality (RelAbs, Rel, Abs) with input validation and NaN/Inf handling. Used by all SIMD correctness tests.
+
+**Fuzz tests** — 14 fuzz targets covering all inplace ops with IEEE 754 edge-case seed corpus (NaN, ±Inf, ±0, subnormals, ULP neighbors, min/max).
+
+Detection via `golang.org/x/sys/cpu` (runtime). Function pointer dispatch — zero overhead when SIMD unavailable. ARM64 NEON planned ([#106](https://github.com/born-ml/born/issues/106)).
 
 ---
 

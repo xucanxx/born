@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Three modes: Abs, Rel, RelAbs (combined, default)
   - `AssertAllApproxEqual` for slice comparisons
   - Edge-case tests: MinFloat, Large, negative values, NaN, Inf
+- **SIMD fuzz tests** — 14 fuzz targets for inplace element-wise ops (float32/64, int32/64) with IEEE 754 edge-case seed corpus. Table-driven refactor: 44 test functions → 8 ([#109](https://github.com/born-ml/born/pull/109) by [@bennibbelink](https://github.com/bennibbelink))
 
 ## [0.9.10] - 2026-06-17
 

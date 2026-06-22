@@ -67,7 +67,7 @@ prediction := model.Predict(image)
 - **38+ GPU Operations** - MatMul, BatchMatMul, Conv2D, MaxPool2D, Softmax, and more
 - **Lazy Evaluation** - GPU-resident tensors, command batching (~90s → <5s/step)
 - **Multi-dim Transpose** - GPU-accelerated 3D/4D/5D/6D tensors
-- **Automatic Memory** - `runtime.SetFinalizer` for GPU buffer cleanup
+- **Explicit Memory** - Deterministic GPU buffer lifecycle via `Release()` (no GC dependency)
 
 ### LLM & Transformers
 - **Flash Attention 2** - O(N) memory, WebGPU WGSL shader, 2x+ speedup on long sequences
