@@ -41,13 +41,13 @@ const (
 
 // resizeParams holds the resolved attributes and computed dimensions for Resize.
 type resizeParams struct {
-	mode       resizeMode
-	coordMode  coordTransformMode
-	nearMode   nearestMode
-	scaleH     float64
-	scaleW     float64
-	outH       int
-	outW       int
+	mode      resizeMode
+	coordMode coordTransformMode
+	nearMode  nearestMode
+	scaleH    float64
+	scaleW    float64
+	outH      int
+	outW      int
 }
 
 // handleResize implements ONNX Resize for 4D NCHW float32 tensors.
@@ -223,7 +223,7 @@ func coordTransform(outIdx int, scale float64, inLen, outLen int, mode coordTran
 	case coordAsymmetric:
 		return float64(outIdx) / scale
 	case coordHalfPixel:
-		return (float64(outIdx) + 0.5) / scale - 0.5
+		return (float64(outIdx)+0.5)/scale - 0.5
 	case coordAlignCorners:
 		if outLen <= 1 {
 			return 0
@@ -233,7 +233,7 @@ func coordTransform(outIdx int, scale float64, inLen, outLen int, mode coordTran
 		if outLen <= 1 {
 			return 0
 		}
-		return (float64(outIdx) + 0.5) / scale - 0.5
+		return (float64(outIdx)+0.5)/scale - 0.5
 	default:
 		return float64(outIdx) / scale
 	}
