@@ -1,4 +1,4 @@
-//go:build windows
+//go:build windows || linux
 
 // GPU Training Example — demonstrates Born GPU training loop.
 //
