@@ -85,6 +85,16 @@ func GetAttrFloat(node *Node, name string, defaultVal float32) float32 {
 	return defaultVal
 }
 
+// GetAttrFloats returns a float array attribute.
+func GetAttrFloats(node *Node, name string) []float32 {
+	for i := range node.Attributes {
+		if node.Attributes[i].Name == name {
+			return node.Attributes[i].Floats
+		}
+	}
+	return nil
+}
+
 // GetAttrString returns a string attribute or default value.
 func GetAttrString(node *Node, name, defaultVal string) string {
 	for i := range node.Attributes {

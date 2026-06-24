@@ -5,15 +5,19 @@ All notable changes to the Born ML Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.9.11] - 2026-06-24
 
 ### Added
 
+- **ONNX Resize operator** — nearest + bilinear interpolation, 4 coordinate transform modes (half_pixel, asymmetric, align_corners, pytorch_half_pixel), 4 nearest sub-modes, scales and sizes inputs. Unblocks YOLOv5/v8 and vision models with upsampling layers. 57 ONNX operators total ([#111](https://github.com/born-ml/born/issues/111))
+  - 15 tests covering upsample, downsample, identity, non-power-of-2 scales, multi-batch, error cases
+  - ADR-018: architecture follows pool_ops pattern (direct float32 computation, no Backend changes)
 - **Tolerance package** — `internal/tolerance` for approximate floating-point equality with Burn-aligned RelAbs formula, input validation, NaN/Inf handling. Replaces ad-hoc `maxDiff` checks in SIMD tests ([#107](https://github.com/born-ml/born/pull/107) by [@bennibbelink](https://github.com/bennibbelink))
   - Three modes: Abs, Rel, RelAbs (combined, default)
   - `AssertAllApproxEqual` for slice comparisons
   - Edge-case tests: MinFloat, Large, negative values, NaN, Inf
 - **SIMD fuzz tests** — 14 fuzz targets for inplace element-wise ops (float32/64, int32/64) with IEEE 754 edge-case seed corpus. Table-driven refactor: 44 test functions → 8 ([#109](https://github.com/born-ml/born/pull/109) by [@bennibbelink](https://github.com/bennibbelink))
+- **GetAttrFloats** helper for ONNX attribute access (completes the accessor set)
 
 ## [0.9.10] - 2026-06-17
 
