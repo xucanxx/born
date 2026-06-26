@@ -1,4 +1,4 @@
-//go:build windows
+//go:build windows || linux
 
 // Package webgpu provides embedded WGSL compute shaders for tensor operations.
 package webgpu

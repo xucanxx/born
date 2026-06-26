@@ -1,4 +1,4 @@
-//go:build windows
+//go:build windows || linux
 
 // Package webgpu implements the WebGPU backend for GPU-accelerated tensor operations.
 package webgpu

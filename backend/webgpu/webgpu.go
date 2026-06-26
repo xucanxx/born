@@ -1,4 +1,4 @@
-//go:build windows
+//go:build windows || linux
 
 // Copyright 2025 Born ML Framework. All rights reserved.
 // Use of this source code is governed by an Apache 2.0
