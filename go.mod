@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/gogpu/gputypes v0.5.0
-	github.com/gogpu/wgpu v0.30.1
+	github.com/gogpu/wgpu v0.30.4
 	github.com/pkoukk/tiktoken-go v0.1.8
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sys v0.46.0
@@ -13,7 +13,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.12.0 // indirect
-	github.com/go-webgpu/goffi v0.5.3 // indirect
+	github.com/go-webgpu/goffi v0.5.5 // indirect
 	github.com/go-webgpu/webgpu v0.5.2 // indirect
 	github.com/gogpu/gpucontext v0.21.0 // indirect
 	github.com/gogpu/naga v0.17.15 // indirect
