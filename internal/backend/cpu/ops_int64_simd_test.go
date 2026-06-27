@@ -1,33 +1,36 @@
 package cpu
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 )
 
-func createRandomInt64Slices() ([]int64, []int64) {
-	aSlice := make([]int64, 1024)
-	bSlice := make([]int64, 1024)
+// createRandomInt64Slice returns a slice of length n filled with
+// random int64 values, suitable for benchmarking element-wise ops.
+func createRandomInt64Slice(n int) []int64 {
+	a := make([]int64, n)
 
 	rng := rand.New(rand.NewSource(0))
-	for i := range aSlice {
-		aSlice[i] = int64(rng.Int())
+	for i := range a {
+		a[i] = int64(rng.Int())
 	}
-	for i := range bSlice {
-		bSlice[i] = int64(rng.Int())
-	}
-	return aSlice, bSlice
+	return a
 }
 
 // BenchmarkAddInplaceI64_Scalar benchmarks a[i] += b[i] using the scalar fallback.
 func BenchmarkAddInplaceI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-
 	saved := simdAddInplaceInt64
 	simdAddInplaceInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 	simdAddInplaceInt64 = saved
 }
@@ -38,23 +41,31 @@ func BenchmarkAddInplaceI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 }
 
 // BenchmarkSubInplaceI64_Scalar benchmarks a[i] -= b[i] using the scalar fallback.
 func BenchmarkSubInplaceI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-
 	saved := simdSubInplaceInt64
 	simdSubInplaceInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 	simdSubInplaceInt64 = saved
 }
@@ -65,23 +76,31 @@ func BenchmarkSubInplaceI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 }
 
 // BenchmarkMulInplaceI64_Scalar benchmarks a[i] *= b[i] using the scalar fallback.
 func BenchmarkMulInplaceI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-
 	saved := simdMulInplaceInt64
 	simdMulInplaceInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 	simdMulInplaceInt64 = saved
 }
@@ -92,24 +111,32 @@ func BenchmarkMulInplaceI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceInt64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceInt64(aSlice, bSlice)
+			}
+		})
 	}
 }
 
 // BenchmarkAddVectorizedI64_Scalar benchmarks dst[i] = a[i] + b[i] using the scalar fallback.
 func BenchmarkAddVectorizedI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
 	saved := simdAddVectorizedInt64
 	simdAddVectorizedInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 	simdAddVectorizedInt64 = saved
 }
@@ -120,25 +147,33 @@ func BenchmarkAddVectorizedI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 }
 
 // BenchmarkSubVectorizedI64_Scalar benchmarks dst[i] = a[i] - b[i] using the scalar fallback.
 func BenchmarkSubVectorizedI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
 	saved := simdSubVectorizedInt64
 	simdSubVectorizedInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 	simdSubVectorizedInt64 = saved
 }
@@ -149,25 +184,33 @@ func BenchmarkSubVectorizedI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 }
 
 // BenchmarkMulVectorizedI64_Scalar benchmarks dst[i] = a[i] * b[i] using the scalar fallback.
 func BenchmarkMulVectorizedI64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
 	saved := simdMulVectorizedInt64
 	simdMulVectorizedInt64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 	simdMulVectorizedInt64 = saved
 }
@@ -178,11 +221,15 @@ func BenchmarkMulVectorizedI64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt64Slices()
-	dst := make([]int64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedInt64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt64Slice(size)
+			bSlice := createRandomInt64Slice(size)
+			dst := make([]int64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedInt64(dst, aSlice, bSlice)
+			}
+		})
 	}
 }

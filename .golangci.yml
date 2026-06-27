@@ -189,6 +189,11 @@ linters:
         linters:
           - dupl         # Expected duplication for type-specific implementations (float32, float64, int32, int64, uint8, bool)
 
+      # SIMD backend kernels - structurally similar by nature (type-specific SIMD ISA variants)
+      - path: internal/backend/cpu/reduce_simd_amd64\.go
+        linters:
+          - dupl         # Expected structural similarity across SIMD ISA variants and types
+
       # Conv2D/MaxPool2D - separate float32/float64 for performance (avoid interface overhead)
       - path: internal/backend/cpu/(conv2d|maxpool2d)\.go
         linters:
