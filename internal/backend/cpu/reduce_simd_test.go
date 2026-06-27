@@ -47,12 +47,16 @@ func TestSumFloat32_ScalarMatchesSIMD(t *testing.T) {
 		{name: "special", srcGenerator: floatSpecialCases[float32]},
 	}
 
+	rng := rand.New(rand.NewSource(1))
 	tol := tolerance.NewDefaultTolerance[float32]()
 
 	for _, c := range cases {
 		for _, n := range simdTestSliceLengths {
 			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
 				src := make([]float32, n)
+				for i := range src {
+					src[i] = c.srcGenerator(rng)
+				}
 				dstSIMD := make([]float32, 1)
 				dstScalar := make([]float32, 1)
 
@@ -80,12 +84,16 @@ func TestSumFloat64_ScalarMatchesSIMD(t *testing.T) {
 		{name: "special", srcGenerator: floatSpecialCases[float64]},
 	}
 
+	rng := rand.New(rand.NewSource(1))
 	tol := tolerance.NewDefaultTolerance[float64]()
 
 	for _, c := range cases {
 		for _, n := range simdTestSliceLengths {
 			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
 				src := make([]float64, n)
+				for i := range src {
+					src[i] = c.srcGenerator(rng)
+				}
 				dstSIMD := make([]float64, 1)
 				dstScalar := make([]float64, 1)
 
@@ -110,10 +118,15 @@ func TestSumInt32_ScalarMatchesSIMD(t *testing.T) {
 		{name: "range 300", srcGenerator: int32Range300},
 	}
 
+	rng := rand.New(rand.NewSource(1))
+
 	for _, c := range cases {
 		for _, n := range simdTestSliceLengths {
 			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
 				src := make([]int32, n)
+				for i := range src {
+					src[i] = c.srcGenerator(rng)
+				}
 				dstSIMD := make([]int32, 1)
 				dstScalar := make([]int32, 1)
 
@@ -138,10 +151,15 @@ func TestSumInt64_ScalarMatchesSIMD(t *testing.T) {
 		{name: "range 300", srcGenerator: int64Range300},
 	}
 
+	rng := rand.New(rand.NewSource(1))
+
 	for _, c := range cases {
 		for _, n := range simdTestSliceLengths {
 			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
 				src := make([]int64, n)
+				for i := range src {
+					src[i] = c.srcGenerator(rng)
+				}
 				dstSIMD := make([]int64, 1)
 				dstScalar := make([]int64, 1)
 
