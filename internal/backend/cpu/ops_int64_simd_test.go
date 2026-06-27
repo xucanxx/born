@@ -30,6 +30,7 @@ func BenchmarkAddInplaceI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				addInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdAddInplaceInt64 = saved
@@ -49,6 +50,7 @@ func BenchmarkAddInplaceI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				addInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -65,6 +67,7 @@ func BenchmarkSubInplaceI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				subInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdSubInplaceInt64 = saved
@@ -84,6 +87,7 @@ func BenchmarkSubInplaceI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				subInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -100,6 +104,7 @@ func BenchmarkMulInplaceI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdMulInplaceInt64 = saved
@@ -119,6 +124,7 @@ func BenchmarkMulInplaceI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulInplaceInt64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -136,6 +142,7 @@ func BenchmarkAddVectorizedI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				addVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdAddVectorizedInt64 = saved
@@ -156,6 +163,7 @@ func BenchmarkAddVectorizedI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				addVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -173,6 +181,7 @@ func BenchmarkSubVectorizedI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				subVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdSubVectorizedInt64 = saved
@@ -193,6 +202,7 @@ func BenchmarkSubVectorizedI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				subVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -210,6 +220,7 @@ func BenchmarkMulVectorizedI64_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdMulVectorizedInt64 = saved
@@ -230,6 +241,7 @@ func BenchmarkMulVectorizedI64_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedInt64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }

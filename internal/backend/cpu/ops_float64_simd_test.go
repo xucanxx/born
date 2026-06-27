@@ -29,6 +29,7 @@ func BenchmarkAddInplaceF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				addInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdAddInplaceFloat64 = saved
@@ -48,6 +49,7 @@ func BenchmarkAddInplaceF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				addInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -64,6 +66,7 @@ func BenchmarkSubInplaceF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				subInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdSubInplaceFloat64 = saved
@@ -83,6 +86,7 @@ func BenchmarkSubInplaceF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				subInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -99,6 +103,7 @@ func BenchmarkMulInplaceF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdMulInplaceFloat64 = saved
@@ -118,6 +123,7 @@ func BenchmarkMulInplaceF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -134,6 +140,7 @@ func BenchmarkDivInplaceF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				divInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdDivInplaceFloat64 = saved
@@ -153,6 +160,7 @@ func BenchmarkDivInplaceF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				divInplaceFloat64(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -170,6 +178,7 @@ func BenchmarkAddVectorizedF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				addVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdAddVectorizedFloat64 = saved
@@ -190,6 +199,7 @@ func BenchmarkAddVectorizedF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				addVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -207,6 +217,7 @@ func BenchmarkSubVectorizedF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				subVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdSubVectorizedFloat64 = saved
@@ -227,6 +238,7 @@ func BenchmarkSubVectorizedF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				subVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -244,6 +256,7 @@ func BenchmarkMulVectorizedF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdMulVectorizedFloat64 = saved
@@ -264,6 +277,7 @@ func BenchmarkMulVectorizedF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }
@@ -281,6 +295,7 @@ func BenchmarkDivVectorizedF64_Scalar(b *testing.B) {
 			for b.Loop() {
 				divVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 	simdDivVectorizedFloat64 = saved
@@ -301,6 +316,7 @@ func BenchmarkDivVectorizedF64_SIMD(b *testing.B) {
 			for b.Loop() {
 				divVectorizedFloat64(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 8))
 		})
 	}
 }

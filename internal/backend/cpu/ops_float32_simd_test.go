@@ -29,6 +29,7 @@ func BenchmarkAddInplaceF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				addInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdAddInplaceFloat32 = saved
@@ -48,6 +49,7 @@ func BenchmarkAddInplaceF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				addInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -64,6 +66,7 @@ func BenchmarkSubInplaceF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				subInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdSubInplaceFloat32 = saved
@@ -83,6 +86,7 @@ func BenchmarkSubInplaceF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				subInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -99,6 +103,7 @@ func BenchmarkMulInplaceF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdMulInplaceFloat32 = saved
@@ -118,6 +123,7 @@ func BenchmarkMulInplaceF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -134,6 +140,7 @@ func BenchmarkDivInplaceF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				divInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdDivInplaceFloat32 = saved
@@ -153,6 +160,7 @@ func BenchmarkDivInplaceF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				divInplaceFloat32(aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -170,6 +178,7 @@ func BenchmarkAddVectorizedF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				addVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdAddVectorizedFloat32 = saved
@@ -190,6 +199,7 @@ func BenchmarkAddVectorizedF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				addVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -207,6 +217,7 @@ func BenchmarkSubVectorizedF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				subVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdSubVectorizedFloat32 = saved
@@ -227,6 +238,7 @@ func BenchmarkSubVectorizedF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				subVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -244,6 +256,7 @@ func BenchmarkMulVectorizedF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdMulVectorizedFloat32 = saved
@@ -264,6 +277,7 @@ func BenchmarkMulVectorizedF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				mulVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
@@ -281,6 +295,7 @@ func BenchmarkDivVectorizedF32_Scalar(b *testing.B) {
 			for b.Loop() {
 				divVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 	simdDivVectorizedFloat32 = saved
@@ -301,6 +316,7 @@ func BenchmarkDivVectorizedF32_SIMD(b *testing.B) {
 			for b.Loop() {
 				divVectorizedFloat32(dst, aSlice, bSlice)
 			}
+			b.SetBytes(int64(size * 4))
 		})
 	}
 }
