@@ -2,12 +2,37 @@ package cpu
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"testing"
 
 	"github.com/born-ml/born/internal/tolerance"
 )
 
+// simdBenchmarkSizes is a set of slice lengths to benchmark SIMD operations against.
 var simdBenchmarkSizes = []int{1024, 8192, 65536}
+
+// simdSumTestCase is a struct to facilitate table-driven SIMD tests on sum.
+type simdSumTestCase[T float32 | float64 | int32 | int64] struct {
+	name         string
+	srcGenerator func(*rand.Rand) T
+}
+
+// floatSpecialCases returns a random float, choosing with equal
+// probability between -Inf, +Inf, NaN, or a value in [-1, 1).
+func floatSpecialCases[T float32 | float64](rng *rand.Rand) T {
+	a := rng.Float32()
+	switch {
+	case a < 0.25:
+		return T(math.Inf(-1))
+	case a < 0.50:
+		return T(math.Inf(1))
+	case a < 0.75:
+		return T(math.NaN())
+	default:
+		return T(rng.Float32()*2 - 1)
+	}
+}
 
 // TestSumFloat32_ScalarMatchesSIMD verifies that the SIMD float32 sum matches the scalar result.
 func TestSumFloat32_ScalarMatchesSIMD(t *testing.T) {
@@ -15,21 +40,30 @@ func TestSumFloat32_ScalarMatchesSIMD(t *testing.T) {
 		t.Skip("SIMD implementation not available")
 	}
 
+	cases := []simdSumTestCase[float32]{
+		{name: "unit", srcGenerator: float32Unit},
+		{name: "small", srcGenerator: float32Small},
+		{name: "large", srcGenerator: float32Large},
+		{name: "special", srcGenerator: floatSpecialCases[float32]},
+	}
+
 	tol := tolerance.NewDefaultTolerance[float32]()
 
-	for _, n := range simdTestSliceLengths {
-		t.Run(fmt.Sprintf("n=%d", n), func(t *testing.T) {
-			src := createRandomFloat32Slice(n)
-			dstSIMD := make([]float32, 1)
-			dstScalar := make([]float32, 1)
+	for _, c := range cases {
+		for _, n := range simdTestSliceLengths {
+			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
+				src := make([]float32, n)
+				dstSIMD := make([]float32, 1)
+				dstScalar := make([]float32, 1)
 
-			sumScalar(dstScalar, src)
-			simdSumFloat32(dstSIMD, src)
+				sumScalar(dstScalar, src)
+				simdSumFloat32(dstSIMD, src)
 
-			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
-				t.Fatal(err)
-			}
-		})
+				if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
 	}
 }
 
@@ -39,21 +73,30 @@ func TestSumFloat64_ScalarMatchesSIMD(t *testing.T) {
 		t.Skip("SIMD implementation not available")
 	}
 
+	cases := []simdSumTestCase[float64]{
+		{name: "unit", srcGenerator: float64Unit},
+		{name: "small", srcGenerator: float64Small},
+		{name: "large", srcGenerator: float64Large},
+		{name: "special", srcGenerator: floatSpecialCases[float64]},
+	}
+
 	tol := tolerance.NewDefaultTolerance[float64]()
 
-	for _, n := range simdTestSliceLengths {
-		t.Run(fmt.Sprintf("n=%d", n), func(t *testing.T) {
-			src := createRandomFloat64Slice(n)
-			dstSIMD := make([]float64, 1)
-			dstScalar := make([]float64, 1)
+	for _, c := range cases {
+		for _, n := range simdTestSliceLengths {
+			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
+				src := make([]float64, n)
+				dstSIMD := make([]float64, 1)
+				dstScalar := make([]float64, 1)
 
-			sumScalar(dstScalar, src)
-			simdSumFloat64(dstSIMD, src)
+				sumScalar(dstScalar, src)
+				simdSumFloat64(dstSIMD, src)
 
-			if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
-				t.Fatal(err)
-			}
-		})
+				if err := tolerance.AssertAllApproxEqual(dstScalar, dstSIMD, tol); err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
 	}
 }
 
@@ -63,19 +106,25 @@ func TestSumInt32_ScalarMatchesSIMD(t *testing.T) {
 		t.Skip("SIMD implementation not available")
 	}
 
-	for _, n := range simdTestSliceLengths {
-		t.Run(fmt.Sprintf("n=%d", n), func(t *testing.T) {
-			src := createRandomInt32Slice(n)
-			dstSIMD := make([]int32, 1)
-			dstScalar := make([]int32, 1)
+	cases := []simdSumTestCase[int32]{
+		{name: "range 300", srcGenerator: int32Range300},
+	}
 
-			sumScalar(dstScalar, src)
-			simdSumInt32(dstSIMD, src)
+	for _, c := range cases {
+		for _, n := range simdTestSliceLengths {
+			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
+				src := make([]int32, n)
+				dstSIMD := make([]int32, 1)
+				dstScalar := make([]int32, 1)
 
-			if dstSIMD[0] != dstScalar[0] {
-				t.Errorf("SIMD = %v, scalar = %v, diff = %v", dstSIMD[0], dstScalar[0], dstSIMD[0]-dstScalar[0])
-			}
-		})
+				sumScalar(dstScalar, src)
+				simdSumInt32(dstSIMD, src)
+
+				if dstSIMD[0] != dstScalar[0] {
+					t.Errorf("SIMD = %v, scalar = %v, diff = %v", dstSIMD[0], dstScalar[0], dstSIMD[0]-dstScalar[0])
+				}
+			})
+		}
 	}
 }
 
@@ -85,19 +134,25 @@ func TestSumInt64_ScalarMatchesSIMD(t *testing.T) {
 		t.Skip("SIMD implementation not available")
 	}
 
-	for _, n := range simdTestSliceLengths {
-		t.Run(fmt.Sprintf("n=%d", n), func(t *testing.T) {
-			src := createRandomInt64Slice(n)
-			dstSIMD := make([]int64, 1)
-			dstScalar := make([]int64, 1)
+	cases := []simdSumTestCase[int64]{
+		{name: "range 300", srcGenerator: int64Range300},
+	}
 
-			sumScalar(dstScalar, src)
-			simdSumInt64(dstSIMD, src)
+	for _, c := range cases {
+		for _, n := range simdTestSliceLengths {
+			t.Run(fmt.Sprintf("%s(n=%d)", c.name, n), func(t *testing.T) {
+				src := make([]int64, n)
+				dstSIMD := make([]int64, 1)
+				dstScalar := make([]int64, 1)
 
-			if dstSIMD[0] != dstScalar[0] {
-				t.Errorf("SIMD = %v, scalar = %v, diff = %v", dstSIMD[0], dstScalar[0], dstSIMD[0]-dstScalar[0])
-			}
-		})
+				sumScalar(dstScalar, src)
+				simdSumInt64(dstSIMD, src)
+
+				if dstSIMD[0] != dstScalar[0] {
+					t.Errorf("SIMD = %v, scalar = %v, diff = %v", dstSIMD[0], dstScalar[0], dstSIMD[0]-dstScalar[0])
+				}
+			})
+		}
 	}
 }
 
