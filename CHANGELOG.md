@@ -5,6 +5,17 @@ All notable changes to the Born ML Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.13] - 2026-06-27
+
+### Added
+
+- **Linux WebGPU backend** — widen `//go:build windows` → `windows || linux` across 39 files. GPU backend now compiles and runs on Linux via Vulkan HAL. Tested on Intel Arc (Mesa anv) ([#114](https://github.com/born-ml/born/pull/114) by [@amery](https://github.com/amery))
+- **SIMD Sum** — AVX/AVX2/AVX-512 reduction with 8 accumulators + tree reduction for float32/float64/int32/int64. Up to 16.4× speedup on large arrays. Benchmark refactor with multi-size + MB/s reporting ([#115](https://github.com/born-ml/born/pull/115) by [@bennibbelink](https://github.com/bennibbelink))
+
+### Changed
+
+- **gogpu/wgpu** v0.30.4 → v0.30.5
+
 ## [0.9.12] - 2026-06-24
 
 ### Changed
