@@ -1,35 +1,37 @@
 package cpu
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 )
 
-// createRandomInt32Slices returns two 1024-element slices filled with
+// createRandomInt32Slice returns a slice of length n filled with
 // random int32 values, suitable for benchmarking element-wise ops.
-func createRandomInt32Slices() ([]int32, []int32) {
-	aSlice := make([]int32, 1024)
-	bSlice := make([]int32, 1024)
+func createRandomInt32Slice(n int) []int32 {
+	a := make([]int32, n)
 
 	rng := rand.New(rand.NewSource(0))
-	for i := range aSlice {
-		aSlice[i] = int32(rng.Int())
+	for i := range a {
+		a[i] = int32(rng.Int())
 	}
-	for i := range bSlice {
-		bSlice[i] = int32(rng.Int())
-	}
-	return aSlice, bSlice
+	return a
 }
 
 // BenchmarkAddInplaceI32_Scalar benchmarks a[i] += b[i] using the scalar fallback.
 func BenchmarkAddInplaceI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-
 	saved := simdAddInplaceInt32
 	simdAddInplaceInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdAddInplaceInt32 = saved
 }
@@ -40,23 +42,33 @@ func BenchmarkAddInplaceI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }
 
 // BenchmarkSubInplaceI32_Scalar benchmarks a[i] -= b[i] using the scalar fallback.
 func BenchmarkSubInplaceI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-
 	saved := simdSubInplaceInt32
 	simdSubInplaceInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdSubInplaceInt32 = saved
 }
@@ -67,23 +79,33 @@ func BenchmarkSubInplaceI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }
 
 // BenchmarkMulInplaceI32_Scalar benchmarks a[i] *= b[i] using the scalar fallback.
 func BenchmarkMulInplaceI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-
 	saved := simdMulInplaceInt32
 	simdMulInplaceInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdMulInplaceInt32 = saved
 }
@@ -94,24 +116,34 @@ func BenchmarkMulInplaceI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceInt32(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceInt32(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }
 
 // BenchmarkAddVectorizedI32_Scalar benchmarks dst[i] = a[i] + b[i] using the scalar fallback.
 func BenchmarkAddVectorizedI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
 	saved := simdAddVectorizedInt32
 	simdAddVectorizedInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdAddVectorizedInt32 = saved
 }
@@ -122,25 +154,35 @@ func BenchmarkAddVectorizedI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }
 
 // BenchmarkSubVectorizedI32_Scalar benchmarks dst[i] = a[i] - b[i] using the scalar fallback.
 func BenchmarkSubVectorizedI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
 	saved := simdSubVectorizedInt32
 	simdSubVectorizedInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdSubVectorizedInt32 = saved
 }
@@ -151,25 +193,35 @@ func BenchmarkSubVectorizedI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }
 
 // BenchmarkMulVectorizedI32_Scalar benchmarks dst[i] = a[i] * b[i] using the scalar fallback.
 func BenchmarkMulVectorizedI32_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
 	saved := simdMulVectorizedInt32
 	simdMulVectorizedInt32 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 	simdMulVectorizedInt32 = saved
 }
@@ -180,11 +232,16 @@ func BenchmarkMulVectorizedI32_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomInt32Slices()
-	dst := make([]int32, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedInt32(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomInt32Slice(size)
+			bSlice := createRandomInt32Slice(size)
+			dst := make([]int32, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedInt32(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 4))
+		})
 	}
 }

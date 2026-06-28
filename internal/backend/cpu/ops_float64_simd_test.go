@@ -1,34 +1,36 @@
 package cpu
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 )
 
-// createRandomFloat64Slices returns two 1024-element slices filled with
+// createRandomFloat64Slice returns a slice of length n filled with
 // random float64 values in [-1, 1), suitable for benchmarking element-wise ops.
-func createRandomFloat64Slices() ([]float64, []float64) {
-	aSlice := make([]float64, 1024)
-	bSlice := make([]float64, 1024)
+func createRandomFloat64Slice(n int) []float64 {
+	a := make([]float64, n)
 	rng := rand.New(rand.NewSource(0))
-	for i := range aSlice {
-		aSlice[i] = rng.Float64()*2 - 1
+	for i := range a {
+		a[i] = rng.Float64()*2 - 1
 	}
-	for i := range bSlice {
-		bSlice[i] = rng.Float64()*2 - 1
-	}
-	return aSlice, bSlice
+	return a
 }
 
 // BenchmarkAddInplaceF64_Scalar benchmarks a[i] += b[i] using the scalar fallback.
 func BenchmarkAddInplaceF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-
 	saved := simdAddInplaceFloat64
 	simdAddInplaceFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdAddInplaceFloat64 = saved
 }
@@ -39,23 +41,33 @@ func BenchmarkAddInplaceF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		addInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				addInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkSubInplaceF64_Scalar benchmarks a[i] -= b[i] using the scalar fallback.
 func BenchmarkSubInplaceF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-
 	saved := simdSubInplaceFloat64
 	simdSubInplaceFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdSubInplaceFloat64 = saved
 }
@@ -66,23 +78,33 @@ func BenchmarkSubInplaceF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		subInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				subInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkMulInplaceF64_Scalar benchmarks a[i] *= b[i] using the scalar fallback.
 func BenchmarkMulInplaceF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-
 	saved := simdMulInplaceFloat64
 	simdMulInplaceFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdMulInplaceFloat64 = saved
 }
@@ -93,23 +115,33 @@ func BenchmarkMulInplaceF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkDivInplaceF64_Scalar benchmarks a[i] /= b[i] using the scalar fallback.
 func BenchmarkDivInplaceF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-
 	saved := simdDivInplaceFloat64
 	simdDivInplaceFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		divInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				divInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdDivInplaceFloat64 = saved
 }
@@ -120,24 +152,34 @@ func BenchmarkDivInplaceF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-
-	b.ResetTimer()
-	for b.Loop() {
-		divInplaceFloat64(aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			b.ResetTimer()
+			for b.Loop() {
+				divInplaceFloat64(aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkAddVectorizedF64_Scalar benchmarks dst[i] = a[i] + b[i] using the scalar fallback.
 func BenchmarkAddVectorizedF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
 	saved := simdAddVectorizedFloat64
 	simdAddVectorizedFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdAddVectorizedFloat64 = saved
 }
@@ -148,25 +190,35 @@ func BenchmarkAddVectorizedF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		addVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				addVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkSubVectorizedF64_Scalar benchmarks dst[i] = a[i] - b[i] using the scalar fallback.
 func BenchmarkSubVectorizedF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
 	saved := simdSubVectorizedFloat64
 	simdSubVectorizedFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdSubVectorizedFloat64 = saved
 }
@@ -177,25 +229,35 @@ func BenchmarkSubVectorizedF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		subVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				subVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkMulVectorizedF64_Scalar benchmarks dst[i] = a[i] * b[i] using the scalar fallback.
 func BenchmarkMulVectorizedF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
 	saved := simdMulVectorizedFloat64
 	simdMulVectorizedFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdMulVectorizedFloat64 = saved
 }
@@ -206,25 +268,35 @@ func BenchmarkMulVectorizedF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		mulVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				mulVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }
 
 // BenchmarkDivVectorizedF64_Scalar benchmarks dst[i] = a[i] / b[i] using the scalar fallback.
 func BenchmarkDivVectorizedF64_Scalar(b *testing.B) {
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
 	saved := simdDivVectorizedFloat64
 	simdDivVectorizedFloat64 = nil
-	b.ResetTimer()
-	for b.Loop() {
-		divVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				divVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 	simdDivVectorizedFloat64 = saved
 }
@@ -235,11 +307,16 @@ func BenchmarkDivVectorizedF64_SIMD(b *testing.B) {
 		b.Skip("SIMD implementation not available (build without GOEXPERIMENT=simd or non-amd64)")
 	}
 
-	aSlice, bSlice := createRandomFloat64Slices()
-	dst := make([]float64, len(aSlice))
-
-	b.ResetTimer()
-	for b.Loop() {
-		divVectorizedFloat64(dst, aSlice, bSlice)
+	for _, size := range simdBenchmarkSizes {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			aSlice := createRandomFloat64Slice(size)
+			bSlice := createRandomFloat64Slice(size)
+			dst := make([]float64, size)
+			b.ResetTimer()
+			for b.Loop() {
+				divVectorizedFloat64(dst, aSlice, bSlice)
+			}
+			b.SetBytes(int64(size * 8))
+		})
 	}
 }

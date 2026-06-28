@@ -191,40 +191,49 @@ func (cpu *CPUBackend) Sum(x *tensor.RawTensor) *tensor.RawTensor {
 	case tensor.Float32:
 		src := x.AsFloat32()
 		dst := result.AsFloat32()
-		var sum float32
-		for _, v := range src {
-			sum += v
+		if simdSumFloat32 != nil {
+			simdSumFloat32(dst, src)
+		} else {
+			sumScalar(dst, src)
 		}
-		dst[0] = sum
 	case tensor.Float64:
 		src := x.AsFloat64()
 		dst := result.AsFloat64()
-		var sum float64
-		for _, v := range src {
-			sum += v
+		if simdSumFloat64 != nil {
+			simdSumFloat64(dst, src)
+		} else {
+			sumScalar(dst, src)
 		}
-		dst[0] = sum
 	case tensor.Int32:
 		src := x.AsInt32()
 		dst := result.AsInt32()
-		var sum int32
-		for _, v := range src {
-			sum += v
+		if simdSumInt32 != nil {
+			simdSumInt32(dst, src)
+		} else {
+			sumScalar(dst, src)
 		}
-		dst[0] = sum
 	case tensor.Int64:
 		src := x.AsInt64()
 		dst := result.AsInt64()
-		var sum int64
-		for _, v := range src {
-			sum += v
+		if simdSumInt64 != nil {
+			simdSumInt64(dst, src)
+		} else {
+			sumScalar(dst, src)
 		}
-		dst[0] = sum
 	default:
 		panic(fmt.Sprintf("sum: unsupported dtype %s", x.DType()))
 	}
 
 	return result
+}
+
+// sumScalar computes dst[0] = sum(src[i]) using a naive scalar loop.
+func sumScalar[T float32 | float64 | int32 | int64](dst, src []T) {
+	sum := T(0)
+	for _, v := range src {
+		sum += v
+	}
+	dst[0] = sum
 }
 
 // Argmax returns the index of the maximum value along the specified dimension.
