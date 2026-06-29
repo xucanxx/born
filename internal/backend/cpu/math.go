@@ -216,7 +216,7 @@ func (cpu *CPUBackend) Erf(x *tensor.RawTensor) *tensor.RawTensor {
 }
 
 // signUint8 computes sign for unsigned bytes: 0 → 0, positive → 1.
-func signUint8(src, dst []uint8) {
+func signUint8(dst, src []uint8) {
 	for i := range src {
 		if src[i] > 0 {
 			dst[i] = 1
@@ -227,21 +227,21 @@ func signUint8(src, dst []uint8) {
 }
 
 // signInts computes sign for signed integers (int32, int64).
-func signInts[T int32 | int64](src, dst []T) {
+func signInts[T int32 | int64](dst, src []T) {
 	for i, v := range src {
 		switch {
 		case v > 0:
-			dst[i] = T(1)
+			dst[i] = 1
 		case v < 0:
-			dst[i] = T(-1)
+			dst[i] = -1
 		default:
-			dst[i] = T(0)
+			dst[i] = 0
 		}
 	}
 }
 
 // signFloats computes sign for floating-point numbers (float32, float64) with NaN preservation.
-func signFloats[T float32 | float64](src, dst []T) {
+func signFloats[T float32 | float64](dst, src []T) {
 	for i, v := range src {
 		switch {
 		case math.IsNaN(float64(v)):
@@ -265,15 +265,45 @@ func (cpu *CPUBackend) Sign(x *tensor.RawTensor) *tensor.RawTensor {
 
 	switch x.DType() {
 	case tensor.Uint8:
-		signUint8(x.AsUint8(), result.AsUint8())
+		dst := result.AsUint8()
+		src := x.AsUint8()
+		if simdSignUint8 != nil {
+			simdSignUint8(dst, src)
+		} else {
+			signUint8(dst, src)
+		}
 	case tensor.Int32:
-		signInts(x.AsInt32(), result.AsInt32())
+		dst := result.AsInt32()
+		src := x.AsInt32()
+		if simdSignInt32 != nil {
+			simdSignInt32(dst, src)
+		} else {
+			signInts(dst, src)
+		}
 	case tensor.Int64:
-		signInts(x.AsInt64(), result.AsInt64())
+		dst := result.AsInt64()
+		src := x.AsInt64()
+		if simdSignInt64 != nil {
+			simdSignInt64(dst, src)
+		} else {
+			signInts(dst, src)
+		}
 	case tensor.Float32:
-		signFloats(x.AsFloat32(), result.AsFloat32())
+		dst := result.AsFloat32()
+		src := x.AsFloat32()
+		if simdSignFloat32 != nil {
+			simdSignFloat32(dst, src)
+		} else {
+			signFloats(dst, src)
+		}
 	case tensor.Float64:
-		signFloats(x.AsFloat64(), result.AsFloat64())
+		dst := result.AsFloat64()
+		src := x.AsFloat64()
+		if simdSignFloat64 != nil {
+			simdSignFloat64(dst, src)
+		} else {
+			signFloats(dst, src)
+		}
 	default:
 		panic(fmt.Sprintf("sign: unsupported dtype %s (only uint8/int32/int64/float32/float64 supported)", x.DType()))
 	}
