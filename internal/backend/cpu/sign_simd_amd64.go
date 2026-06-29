@@ -268,7 +268,7 @@ func avx2SignUint8(dst, src []uint8) {
 	for ; i+32 <= n; i += 32 {
 		srcLoaded := archsimd.LoadUint8x32Slice(src[i:])
 		mask := srcLoaded.Equal(zerosLoaded)
-		merged := srcLoaded.Merge(onesLoaded, mask) //
+		merged := srcLoaded.Merge(onesLoaded, mask)
 		merged.StoreSlice(dst[i:])
 	}
 
@@ -287,7 +287,7 @@ func avx512SignUint8(dst, src []uint8) {
 	for ; i+64 <= n; i += 64 {
 		srcLoaded := archsimd.LoadUint8x64Slice(src[i:])
 		mask := srcLoaded.Equal(zerosLoaded)
-		merged := srcLoaded.Merge(onesLoaded, mask) //
+		merged := srcLoaded.Merge(onesLoaded, mask)
 		merged.StoreSlice(dst[i:])
 	}
 

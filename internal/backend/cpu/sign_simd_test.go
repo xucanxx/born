@@ -229,7 +229,7 @@ func TestSignU8_SIMDMatchesScalar(t *testing.T) {
 	rng := rand.New(rand.NewSource(1))
 
 	cases := []simdSignTestCase[uint8]{
-		{name: "unit", srcGenerator: func(rng *rand.Rand) uint8 { return uint8(rng.Int()) }},
+		{name: "standard", srcGenerator: func(rng *rand.Rand) uint8 { return uint8(rng.Int()) }},
 	}
 
 	for _, c := range cases {
