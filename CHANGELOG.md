@@ -5,6 +5,17 @@ All notable changes to the Born ML Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.14] - 2026-06-29
+
+### Added
+
+- **SIMD Sign** — branchless AVX/AVX2/AVX-512 sign for float32/float64/int32/int64/uint8. NaN preservation via mask+merge. Up to 19.5× speedup ([#117](https://github.com/born-ml/born/pull/117) by [@bennibbelink](https://github.com/bennibbelink))
+
+### Changed
+
+- **gogpu/wgpu** v0.30.5 → v0.30.7
+- **gogpu/gputypes** v0.5.0 → v0.5.1
+
 ## [0.9.13] - 2026-06-27
 
 ### Added
