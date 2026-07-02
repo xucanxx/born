@@ -26,7 +26,7 @@ You have a Go backend and need to add ML capabilities (classification, recommend
 // - Coordination issues
 
 // Born approach: Single binary
-import "github.com/born-ml/born/tensor"
+import "github.com/xucanxx/born/tensor"
 
 func handler(w http.ResponseWriter, r *http.Request) {
     input := parseRequest(r)
@@ -194,10 +194,10 @@ Run transformer-based models (LLaMA, Mistral, DeepSeek) with efficient autoregre
 ```go
 import (
     "fmt"
-    "github.com/born-ml/born/backend/cpu"
-    "github.com/born-ml/born/models/llama"
-    "github.com/born-ml/born/generate"
-    "github.com/born-ml/born/tokenizer"
+    "github.com/xucanxx/born/backend/cpu"
+    "github.com/xucanxx/born/models/llama"
+    "github.com/xucanxx/born/generate"
+    "github.com/xucanxx/born/tokenizer"
 )
 
 func main() {
@@ -252,7 +252,7 @@ torch.onnx.export(model, "model.onnx")
 
 ```go
 // 2. Deploy with Born (49 ONNX operators supported)
-import "github.com/born-ml/born/internal/onnx"
+import "github.com/xucanxx/born/internal/onnx"
 
 registry := onnx.NewRegistry(backend)
 model, _ := onnx.LoadModel("model.onnx", registry)
@@ -519,15 +519,15 @@ If Born fits your use case:
 
 ```bash
 # Install (latest release)
-go get github.com/born-ml/born@latest
+go get github.com/xucanxx/born@latest
 
 # Example
 package main
 
 import (
-    "github.com/born-ml/born/tensor"
-    "github.com/born-ml/born/backend/cpu"
-    "github.com/born-ml/born/nn"
+    "github.com/xucanxx/born/tensor"
+    "github.com/xucanxx/born/backend/cpu"
+    "github.com/xucanxx/born/nn"
 )
 
 func main() {

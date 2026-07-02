@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/born-ml/born/internal/gguf"
-	internalLoader "github.com/born-ml/born/internal/loader"
-	"github.com/born-ml/born/internal/nn"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/gguf"
+	internalLoader "github.com/xucanxx/born/internal/loader"
+	"github.com/xucanxx/born/internal/nn"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // bornNameEmbeddingWeight is the canonical Born name for the token embedding weight.

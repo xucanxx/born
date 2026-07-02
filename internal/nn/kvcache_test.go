@@ -3,8 +3,8 @@ package nn
 import (
 	"testing"
 
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 func TestKVCache_Update_And_Get(t *testing.T) {

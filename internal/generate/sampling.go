@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"sort"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // SamplingConfig configures the sampling strategy for text generation.

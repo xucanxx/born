@@ -20,11 +20,11 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/born-ml/born/autodiff"
-	"github.com/born-ml/born/backend/webgpu"
-	"github.com/born-ml/born/nn"
-	"github.com/born-ml/born/optim"
-	"github.com/born-ml/born/tensor"
+	"github.com/xucanxx/born/autodiff"
+	"github.com/xucanxx/born/backend/webgpu"
+	"github.com/xucanxx/born/nn"
+	"github.com/xucanxx/born/optim"
+	"github.com/xucanxx/born/tensor"
 )
 
 type B = *autodiff.Backend[*webgpu.Backend]

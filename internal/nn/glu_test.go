@@ -4,9 +4,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/tensor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

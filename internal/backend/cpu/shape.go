@@ -3,7 +3,7 @@ package cpu
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Expand broadcasts the tensor to a new shape.

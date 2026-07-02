@@ -10,9 +10,9 @@
 // Example:
 //
 //	import (
-//	    "github.com/born-ml/born/autodiff"
-//	    "github.com/born-ml/born/backend/cpu"
-//	    "github.com/born-ml/born/tensor"
+//	    "github.com/xucanxx/born/autodiff"
+//	    "github.com/xucanxx/born/backend/cpu"
+//	    "github.com/xucanxx/born/tensor"
 //	)
 //
 //	func main() {
@@ -30,8 +30,8 @@
 package autodiff
 
 import (
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/tensor"
 )
 
 // Backend is the autodiff-enabled backend.

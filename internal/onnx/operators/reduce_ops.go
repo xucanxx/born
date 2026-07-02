@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // registerReduceOps registers ONNX reduction operators.

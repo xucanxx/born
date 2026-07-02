@@ -3,9 +3,9 @@ package nn
 import (
 	"testing"
 
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // TestMaxPool2D_Creation tests MaxPool2D layer creation.

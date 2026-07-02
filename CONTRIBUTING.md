@@ -36,7 +36,7 @@ Born is a modern ML framework for Go, and we welcome contributions of all kinds 
 
 ```bash
 # Clone repository
-git clone https://github.com/born-ml/born.git
+git clone https://github.com/xucanxx/born.git
 cd born
 
 # Install dependencies
@@ -75,7 +75,7 @@ born/
 ### 1. Check Project Status
 
 Before starting:
-- Check [GitHub Issues](https://github.com/born-ml/born/issues) for existing work
+- Check [GitHub Issues](https://github.com/xucanxx/born/issues) for existing work
 - Review [ROADMAP.md](ROADMAP.md) for project priorities
 - Check [CHANGELOG.md](CHANGELOG.md) for recent changes
 
@@ -477,8 +477,8 @@ Look for issues labeled:
 
 ### Getting Help
 
-1. Check existing [Issues](https://github.com/born-ml/born/issues)
-2. Search [Discussions](https://github.com/born-ml/born/discussions)
+1. Check existing [Issues](https://github.com/xucanxx/born/issues)
+2. Search [Discussions](https://github.com/xucanxx/born/discussions)
 3. Read documentation in `docs/`
 4. Ask in GitHub Discussions
 
@@ -521,7 +521,7 @@ Every contribution makes Born better. Whether it's:
 
 ---
 
-**Questions?** Open a [Discussion](https://github.com/born-ml/born/discussions) or check existing [Issues](https://github.com/born-ml/born/issues).
+**Questions?** Open a [Discussion](https://github.com/xucanxx/born/discussions) or check existing [Issues](https://github.com/xucanxx/born/issues).
 
 ---
 

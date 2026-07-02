@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // EmbeddingOp represents an embedding lookup operation.

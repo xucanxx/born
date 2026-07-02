@@ -3,7 +3,7 @@ package nn
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 const (

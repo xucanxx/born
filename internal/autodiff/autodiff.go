@@ -27,8 +27,8 @@ package autodiff
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/autodiff/ops"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff/ops"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // AutodiffBackend wraps a Backend and adds automatic differentiation.

@@ -22,7 +22,7 @@ We take security seriously. If you discover a security vulnerability in Born ML 
 Instead, please report security issues by:
 
 1. **Private Security Advisory** (preferred):
-   https://github.com/born-ml/born/security/advisories/new
+   https://github.com/xucanxx/born/security/advisories/new
 
 2. **Direct contact** to maintainers:
    Create a private GitHub issue or contact via discussions
@@ -369,9 +369,9 @@ When vulnerabilities are addressed, they will be listed here with:
 
 ## Security Contact
 
-- **GitHub Security Advisory**: https://github.com/born-ml/born/security/advisories/new
-- **Public Issues** (for non-sensitive bugs): https://github.com/born-ml/born/issues
-- **Discussions**: https://github.com/born-ml/born/discussions
+- **GitHub Security Advisory**: https://github.com/xucanxx/born/security/advisories/new
+- **Public Issues** (for non-sensitive bugs): https://github.com/xucanxx/born/issues
+- **Discussions**: https://github.com/xucanxx/born/discussions
 
 ## Bug Bounty Program
 

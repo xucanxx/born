@@ -6,8 +6,8 @@
 // Example usage:
 //
 //	import (
-//	    "github.com/born-ml/born/loader"
-//	    "github.com/born-ml/born/backend/cpu"
+//	    "github.com/xucanxx/born/loader"
+//	    "github.com/xucanxx/born/backend/cpu"
 //	)
 //
 //	// Open model with auto-detection
@@ -30,7 +30,7 @@
 package loader
 
 import (
-	"github.com/born-ml/born/internal/loader"
+	"github.com/xucanxx/born/internal/loader"
 )
 
 // ModelFormat represents the model weight format.

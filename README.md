@@ -5,14 +5,14 @@
 </p>
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/born-ml/born.svg)](https://pkg.go.dev/github.com/born-ml/born)
-[![Go Report Card](https://goreportcard.com/badge/github.com/born-ml/born)](https://goreportcard.com/report/github.com/born-ml/born)
+[![Go Reference](https://pkg.go.dev/badge/github.com/xucanxx/born.svg)](https://pkg.go.dev/github.com/xucanxx/born)
+[![Go Report Card](https://goreportcard.com/badge/github.com/xucanxx/born)](https://goreportcard.com/report/github.com/xucanxx/born)
 [![Pure Go](https://img.shields.io/badge/100%25-Pure_Go-00ADD8)](https://golang.org/)
-[![Release](https://img.shields.io/github/v/release/born-ml/born?include_prereleases&label=version)](https://github.com/born-ml/born/releases)
+[![Release](https://img.shields.io/github/v/release/born-ml/born?include_prereleases&label=version)](https://github.com/xucanxx/born/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Test Status](https://github.com/born-ml/born/actions/workflows/test.yml/badge.svg)](https://github.com/born-ml/born/actions/workflows/test.yml)
+[![Test Status](https://github.com/xucanxx/born/actions/workflows/test.yml/badge.svg)](https://github.com/xucanxx/born/actions/workflows/test.yml)
 [![Codecov](https://codecov.io/gh/born-ml/born/branch/main/graph/badge.svg?token=CODECOV_TOKEN)](https://codecov.io/gh/born-ml/born)
-[![Discussions](https://img.shields.io/github/discussions/born-ml/born?logo=github&label=Discussions)](https://github.com/born-ml/born/discussions)
+[![Discussions](https://img.shields.io/github/discussions/born-ml/born?logo=github&label=Discussions)](https://github.com/xucanxx/born/discussions)
 <a href="https://opencollective.com/born-ml"><img src="https://opencollective.com/born-ml/all/badge.svg?label=financial+contributors" alt="Financial Contributors on Open Collective"></a>
 
 > **"Models are born production-ready"**
@@ -35,7 +35,7 @@ Deploying ML models is hard:
 
 ### The Born Solution
 ```go
-import "github.com/born-ml/born"
+import "github.com/xucanxx/born"
 
 // Models "born" ready for production
 model := born.Load("resnet50.born")
@@ -99,7 +99,7 @@ prediction := model.Predict(image)
 
 ```bash
 # Clone repository
-git clone https://github.com/born-ml/born.git
+git clone https://github.com/xucanxx/born.git
 cd born
 
 # Build
@@ -132,10 +132,10 @@ make bench          # Run benchmarks
 package main
 
 import (
-    "github.com/born-ml/born/autodiff"
-    "github.com/born-ml/born/backend/cpu"
-    "github.com/born-ml/born/nn"
-    "github.com/born-ml/born/optim"
+    "github.com/xucanxx/born/autodiff"
+    "github.com/xucanxx/born/backend/cpu"
+    "github.com/xucanxx/born/nn"
+    "github.com/xucanxx/born/optim"
 )
 
 func main() {
@@ -180,10 +180,10 @@ package main
 
 import (
     "fmt"
-    "github.com/born-ml/born/backend/cpu"
-    "github.com/born-ml/born/models/llama"
-    "github.com/born-ml/born/generate"
-    "github.com/born-ml/born/tokenizer"
+    "github.com/xucanxx/born/backend/cpu"
+    "github.com/xucanxx/born/models/llama"
+    "github.com/xucanxx/born/generate"
+    "github.com/xucanxx/born/tokenizer"
 )
 
 func main() {
@@ -293,9 +293,9 @@ Currently supported on **Windows (D3D12)**. Linux (Vulkan) and macOS (Metal) sup
 **Usage:**
 ```go
 import (
-    "github.com/born-ml/born/autodiff"
-    "github.com/born-ml/born/backend/cpu"
-    "github.com/born-ml/born/backend/webgpu"
+    "github.com/xucanxx/born/autodiff"
+    "github.com/xucanxx/born/backend/cpu"
+    "github.com/xucanxx/born/backend/webgpu"
 )
 
 // Automatic GPU/CPU selection with graceful fallback
@@ -389,13 +389,13 @@ func (t *Tensor[float32, B]) MatMul(other *Tensor[float32, B]) *Tensor[float32, 
 - **[Philosophy](docs/PHILOSOPHY.md)** - Production-first design principles
 - **[Use Cases](docs/USE_CASES.md)** - When to use Born (and when not)
 - **[Getting Started](docs/getting-started.md)** - Installation and first steps *(coming soon)*
-- **[API Reference](https://pkg.go.dev/github.com/born-ml/born)** - Complete API documentation
+- **[API Reference](https://pkg.go.dev/github.com/xucanxx/born)** - Complete API documentation
 - **[Examples](examples/)** - Sample code (MNIST MLP, CNN, GPU inference, GPU training)
 
 ### For Contributors
 
 - **[Contributing](CONTRIBUTING.md)** - How to contribute
-- **[GitHub Issues](https://github.com/born-ml/born/issues)** - Report bugs or request features
+- **[GitHub Issues](https://github.com/xucanxx/born/issues)** - Report bugs or request features
 
 ---
 
@@ -531,13 +531,13 @@ No DLL downloads, no `LD_LIBRARY_PATH`, no system-level installs. True single bi
 
 **Project is in early development**. Star the repo to follow progress!
 
-- **GitHub Org**: [github.com/born-ml](https://github.com/born-ml)
-- **Main Repo**: [github.com/born-ml/born](https://github.com/born-ml/born)
-- **Discussions**: [GitHub Discussions](https://github.com/born-ml/born/discussions)
-  - [Announcements](https://github.com/born-ml/born/discussions/2)
-  - [Q&A](https://github.com/born-ml/born/discussions/3)
-  - [Feature Requests](https://github.com/born-ml/born/discussions/4)
-- **Issues**: [Report bugs or request features](https://github.com/born-ml/born/issues)
+- **GitHub Org**: [github.com/xucanxx](https://github.com/xucanxx)
+- **Main Repo**: [github.com/xucanxx/born](https://github.com/xucanxx/born)
+- **Discussions**: [GitHub Discussions](https://github.com/xucanxx/born/discussions)
+  - [Announcements](https://github.com/xucanxx/born/discussions/2)
+  - [Q&A](https://github.com/xucanxx/born/discussions/3)
+  - [Feature Requests](https://github.com/xucanxx/born/discussions/4)
+- **Issues**: [Report bugs or request features](https://github.com/xucanxx/born/issues)
 
 ---
 
@@ -596,7 +596,7 @@ A: No install required. The WebGPU backend uses [gogpu/wgpu](https://github.com/
 A: **All operations needed for production ML!** Math (Add, Mul, Exp, etc.), Matrix (MatMul, BatchMatMul, Conv2D), Activations (ReLU, Softmax), Comparisons (Greater, Equal), Boolean (And, Or, Not), Reductions (Sum, Argmax), and more. See the [WebGPU Operation Table](#backend-abstraction).
 
 **Q: How can I help?**
-A: Check our [Contributing Guide](CONTRIBUTING.md) and [GitHub Issues](https://github.com/born-ml/born/issues)!
+A: Check our [Contributing Guide](CONTRIBUTING.md) and [GitHub Issues](https://github.com/xucanxx/born/issues)!
 
 ---
 

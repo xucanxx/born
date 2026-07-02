@@ -1,6 +1,6 @@
 # GolangCI-Lint v2.5 Configuration for Born ML Framework
 # Documentation: https://golangci-lint.run/docs/configuration/
-# Copied from: github.com/born-ml/born/cortex (reference project)
+# Copied from: github.com/xucanxx/born/cortex (reference project)
 # AGGRESSIVE CONFIGURATION - Catches more issues during development
 
 version: "2"

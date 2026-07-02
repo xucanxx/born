@@ -4,10 +4,10 @@ import (
 	"math"
 	"testing"
 
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/internal/autodiff/ops"
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/internal/autodiff/ops"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Helper to check float32 slices are equal within epsilon.

@@ -15,7 +15,7 @@ Born ML Framework follows a **production-first** philosophy where models are "bo
 
 ```go
 // ✅ Born: No CGO, no external dependencies
-import "github.com/born-ml/born/tensor"
+import "github.com/xucanxx/born/tensor"
 
 // ❌ Others: CGO dependencies
 // OpenXLA, CUDA libraries, Python runtime

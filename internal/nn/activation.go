@@ -1,7 +1,7 @@
 package nn
 
 import (
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // ReLUBackend is an interface for backends that support ReLU activation.

@@ -3,7 +3,7 @@ package cpu
 import (
 	"math"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Clamp restricts tensor values element-wise to [minBound, maxBound].

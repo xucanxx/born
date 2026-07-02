@@ -1,6 +1,6 @@
 package ops
 
-import "github.com/born-ml/born/internal/tensor"
+import "github.com/xucanxx/born/internal/tensor"
 
 // AddOp represents an element-wise addition operation: output = a + b.
 //

@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // batchParallelThreshold is the minimum batch size before parallelising across goroutines.

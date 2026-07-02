@@ -1,4 +1,4 @@
-module github.com/born-ml/born
+module github.com/xucanxx/born
 
 go 1.26.0
 

@@ -3,8 +3,8 @@ package ops
 import (
 	"testing"
 
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // TestCatOp_Backward_Simple tests basic cat backward with 2 tensors.

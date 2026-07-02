@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **SIMD Sign** — branchless AVX/AVX2/AVX-512 sign for float32/float64/int32/int64/uint8. NaN preservation via mask+merge. Up to 19.5× speedup ([#117](https://github.com/born-ml/born/pull/117) by [@bennibbelink](https://github.com/bennibbelink))
+- **SIMD Sign** — branchless AVX/AVX2/AVX-512 sign for float32/float64/int32/int64/uint8. NaN preservation via mask+merge. Up to 19.5× speedup ([#117](https://github.com/xucanxx/born/pull/117) by [@bennibbelink](https://github.com/bennibbelink))
 
 ### Changed
 
@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Linux WebGPU backend** — widen `//go:build windows` → `windows || linux` across 39 files. GPU backend now compiles and runs on Linux via Vulkan HAL. Tested on Intel Arc (Mesa anv) ([#114](https://github.com/born-ml/born/pull/114) by [@amery](https://github.com/amery))
-- **SIMD Sum** — AVX/AVX2/AVX-512 reduction with 8 accumulators + tree reduction for float32/float64/int32/int64. Up to 16.4× speedup on large arrays. Benchmark refactor with multi-size + MB/s reporting ([#115](https://github.com/born-ml/born/pull/115) by [@bennibbelink](https://github.com/bennibbelink))
+- **Linux WebGPU backend** — widen `//go:build windows` → `windows || linux` across 39 files. GPU backend now compiles and runs on Linux via Vulkan HAL. Tested on Intel Arc (Mesa anv) ([#114](https://github.com/xucanxx/born/pull/114) by [@amery](https://github.com/amery))
+- **SIMD Sum** — AVX/AVX2/AVX-512 reduction with 8 accumulators + tree reduction for float32/float64/int32/int64. Up to 16.4× speedup on large arrays. Benchmark refactor with multi-size + MB/s reporting ([#115](https://github.com/xucanxx/born/pull/115) by [@bennibbelink](https://github.com/bennibbelink))
 
 ### Changed
 
@@ -39,28 +39,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **ONNX Resize operator** — nearest + bilinear interpolation, 4 coordinate transform modes (half_pixel, asymmetric, align_corners, pytorch_half_pixel), 4 nearest sub-modes, scales and sizes inputs. Unblocks YOLOv5/v8 and vision models with upsampling layers. 57 ONNX operators total ([#111](https://github.com/born-ml/born/issues/111))
+- **ONNX Resize operator** — nearest + bilinear interpolation, 4 coordinate transform modes (half_pixel, asymmetric, align_corners, pytorch_half_pixel), 4 nearest sub-modes, scales and sizes inputs. Unblocks YOLOv5/v8 and vision models with upsampling layers. 57 ONNX operators total ([#111](https://github.com/xucanxx/born/issues/111))
   - 15 tests covering upsample, downsample, identity, non-power-of-2 scales, multi-batch, error cases
   - ADR-018: architecture follows pool_ops pattern (direct float32 computation, no Backend changes)
-- **Tolerance package** — `internal/tolerance` for approximate floating-point equality with Burn-aligned RelAbs formula, input validation, NaN/Inf handling. Replaces ad-hoc `maxDiff` checks in SIMD tests ([#107](https://github.com/born-ml/born/pull/107) by [@bennibbelink](https://github.com/bennibbelink))
+- **Tolerance package** — `internal/tolerance` for approximate floating-point equality with Burn-aligned RelAbs formula, input validation, NaN/Inf handling. Replaces ad-hoc `maxDiff` checks in SIMD tests ([#107](https://github.com/xucanxx/born/pull/107) by [@bennibbelink](https://github.com/bennibbelink))
   - Three modes: Abs, Rel, RelAbs (combined, default)
   - `AssertAllApproxEqual` for slice comparisons
   - Edge-case tests: MinFloat, Large, negative values, NaN, Inf
-- **SIMD fuzz tests** — 14 fuzz targets for inplace element-wise ops (float32/64, int32/64) with IEEE 754 edge-case seed corpus. Table-driven refactor: 44 test functions → 8 ([#109](https://github.com/born-ml/born/pull/109) by [@bennibbelink](https://github.com/bennibbelink))
+- **SIMD fuzz tests** — 14 fuzz targets for inplace element-wise ops (float32/64, int32/64) with IEEE 754 edge-case seed corpus. Table-driven refactor: 44 test functions → 8 ([#109](https://github.com/xucanxx/born/pull/109) by [@bennibbelink](https://github.com/bennibbelink))
 - **GetAttrFloats** helper for ONNX attribute access (completes the accessor set)
 
 ## [0.9.10] - 2026-06-17
 
 ### Added
 
-- **AVX2 3x3 depthwise convolution kernel** — avo-generated, 9 taps broadcast into persistent YMM registers, 11.6x geomean speedup over Go kernel ([#103](https://github.com/born-ml/born/pull/103) by [@tphakala](https://github.com/tphakala))
-- **AVX2 pow(x,c) kernel** — Cephes exp·ln composition (~4 ULP), for ONNX Pow with scalar exponent. BirdNET sigmoid/exp hot path 6.58% → ~1% ([#104](https://github.com/born-ml/born/pull/104) by [@tphakala](https://github.com/tphakala))
+- **AVX2 3x3 depthwise convolution kernel** — avo-generated, 9 taps broadcast into persistent YMM registers, 11.6x geomean speedup over Go kernel ([#103](https://github.com/xucanxx/born/pull/103) by [@tphakala](https://github.com/tphakala))
+- **AVX2 pow(x,c) kernel** — Cephes exp·ln composition (~4 ULP), for ONNX Pow with scalar exponent. BirdNET sigmoid/exp hot path 6.58% → ~1% ([#104](https://github.com/xucanxx/born/pull/104) by [@tphakala](https://github.com/tphakala))
 
 ## [0.9.9] - 2026-06-17
 
 ### Changed
 
-- **Conv im2col scratch pooling** — `sync.Pool` for colBuf and matOut buffers, eliminating per-call heap allocation and `runtime.memclr` overhead ([#101](https://github.com/born-ml/born/pull/101) by [@tphakala](https://github.com/tphakala))
+- **Conv im2col scratch pooling** — `sync.Pool` for colBuf and matOut buffers, eliminating per-call heap allocation and `runtime.memclr` overhead ([#101](https://github.com/xucanxx/born/pull/101) by [@tphakala](https://github.com/tphakala))
   - Generic `poolScratch[T]` helper with grow-in-place capacity
   - Poisoned-overwrite test proves full overwrite safety
   - Zero-alloc conv forward pass on warm pool
@@ -69,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Conv im2col GEMM routing** — regular convolutions now route through the AVX2+FMA GEMM kernel via colBuf transpose ([#99](https://github.com/born-ml/born/pull/99) by [@tphakala](https://github.com/tphakala))
+- **Conv im2col GEMM routing** — regular convolutions now route through the AVX2+FMA GEMM kernel via colBuf transpose ([#99](https://github.com/xucanxx/born/pull/99) by [@tphakala](https://github.com/tphakala))
   - 16–22x faster per conv call on BirdNET shapes
   - Pooled transpose buffer (`sync.Pool`) — zero allocation overhead
   - Tiny depthwise-style calls (cOut=1, small colHeight) stay on scalar path
@@ -78,13 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **AVX2+FMA GEMM kernel** — avo-generated 6x16 register-blocked micro-kernel, default-buildable, always-on dispatch via `golang.org/x/sys/cpu` ([#96](https://github.com/born-ml/born/pull/96) by [@tphakala](https://github.com/tphakala))
+- **AVX2+FMA GEMM kernel** — avo-generated 6x16 register-blocked micro-kernel, default-buildable, always-on dispatch via `golang.org/x/sys/cpu` ([#96](https://github.com/xucanxx/born/pull/96) by [@tphakala](https://github.com/tphakala))
   - BirdNET v2.4: scalar 1450ms → 408ms per inference (3.55x end-to-end)
   - Per-kernel: up to 29x on large GEMM shapes (512×512×512)
   - 1x16 remainder/GEMV path — no shape falls to scalar inner loop
   - Allocation-free via pooled packing scratch (`sync.Pool`)
   - Three-layer coexistence: vendored asm (default) / archsimd (GOEXPERIMENT) / scalar
-- **AVX2 vectorized sigmoid** — Cephes expf approximation (~1 ULP), for Sigmoid and SiLU ([#97](https://github.com/born-ml/born/pull/97) by [@tphakala](https://github.com/tphakala))
+- **AVX2 vectorized sigmoid** — Cephes expf approximation (~1 ULP), for Sigmoid and SiLU ([#97](https://github.com/xucanxx/born/pull/97) by [@tphakala](https://github.com/tphakala))
   - BirdNET: sigmoid/exp hot path 18% → 3% of inference time
   - SiLU fast path: `sigmoid(x)` then `out *= x` — avoids double computation
   - Scalar tail for non-8-aligned lengths
@@ -97,30 +97,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **ONNX Conv operator** — grouped convolution, depthwise, asymmetric pads, bias ([#77](https://github.com/born-ml/born/pull/77) by [@tphakala](https://github.com/tphakala))
-- **ONNX MaxPool and AveragePool operators** — kernel_shape, strides, pads, count_include_pad ([#75](https://github.com/born-ml/born/pull/75) by [@tphakala](https://github.com/tphakala))
-- **ONNX Pow and ReduceMean/Max/Min operators** — multi-axis reduction, keepdims, noop_with_empty_axes ([#74](https://github.com/born-ml/born/pull/74) by [@tphakala](https://github.com/tphakala))
-- **SIMD element-wise arithmetic** — AVX/AVX2/AVX-512 for Add, Sub, Mul, Div across float32, float64, int32, int64 ([#72](https://github.com/born-ml/born/pull/72) by [@bennibbelink](https://github.com/bennibbelink))
+- **ONNX Conv operator** — grouped convolution, depthwise, asymmetric pads, bias ([#77](https://github.com/xucanxx/born/pull/77) by [@tphakala](https://github.com/tphakala))
+- **ONNX MaxPool and AveragePool operators** — kernel_shape, strides, pads, count_include_pad ([#75](https://github.com/xucanxx/born/pull/75) by [@tphakala](https://github.com/tphakala))
+- **ONNX Pow and ReduceMean/Max/Min operators** — multi-axis reduction, keepdims, noop_with_empty_axes ([#74](https://github.com/xucanxx/born/pull/74) by [@tphakala](https://github.com/tphakala))
+- **SIMD element-wise arithmetic** — AVX/AVX2/AVX-512 for Add, Sub, Mul, Div across float32, float64, int32, int64 ([#72](https://github.com/xucanxx/born/pull/72) by [@bennibbelink](https://github.com/bennibbelink))
   - 3.5–5.4x speedup (float32), 1.8–2.3x (float64), 2.9–4.9x (int32), 1.6–2.5x (int64)
   - Runtime CPU detection via `archsimd`, 28 correctness tests + 56 benchmarks
 - **ONNX operators**: 49 → 56 registered operators
 
 ### Fixed
 
-- **Slice off-by-one** on full-axis reverse with negative step ([#76](https://github.com/born-ml/born/pull/76) by [@tphakala](https://github.com/tphakala))
-- **Gather negative index normalization** — ONNX spec compliance for negative indices ([#85](https://github.com/born-ml/born/pull/85) by [@tphakala](https://github.com/tphakala))
-- **Conv auto_pad=VALID** now forces zero pads per ONNX spec ([#77](https://github.com/born-ml/born/pull/77))
-- **Conv padNCHW** propagates `x.Device()` and `x.DType()` instead of hardcoded CPU/Float32 ([#77](https://github.com/born-ml/born/pull/77))
+- **Slice off-by-one** on full-axis reverse with negative step ([#76](https://github.com/xucanxx/born/pull/76) by [@tphakala](https://github.com/tphakala))
+- **Gather negative index normalization** — ONNX spec compliance for negative indices ([#85](https://github.com/xucanxx/born/pull/85) by [@tphakala](https://github.com/tphakala))
+- **Conv auto_pad=VALID** now forces zero pads per ONNX spec ([#77](https://github.com/xucanxx/born/pull/77))
+- **Conv padNCHW** propagates `x.Device()` and `x.DType()` instead of hardcoded CPU/Float32 ([#77](https://github.com/xucanxx/born/pull/77))
 
 ### Changed
 
-- **Chunk/Cat** — contiguous block copies instead of per-element scatter ([#82](https://github.com/born-ml/born/pull/82) by [@tphakala](https://github.com/tphakala))
-- **Broadcast indexing** — incremental odometer instead of per-element division/modulo ([#83](https://github.com/born-ml/born/pull/83) by [@tphakala](https://github.com/tphakala))
-- **Gather** — block-copy instead of per-element coordinate math ([#85](https://github.com/born-ml/born/pull/85) by [@tphakala](https://github.com/tphakala))
-- **TransposeAxes** — incremental index walk instead of per-element coordinate math ([#86](https://github.com/born-ml/born/pull/86) by [@tphakala](https://github.com/tphakala))
-- **Depthwise conv** — direct kernel instead of per-channel im2col+GEMM, 3x3 unrolled path ([#87](https://github.com/born-ml/born/pull/87) by [@tphakala](https://github.com/tphakala))
-- **1x1 conv** — direct matmul fast path bypassing im2col for pointwise convolutions ([#88](https://github.com/born-ml/born/pull/88) by [@tphakala](https://github.com/tphakala))
-- **Broadcast multiply** — structured fast paths for trailing-run and leading-tile patterns ([#89](https://github.com/born-ml/born/pull/89) by [@tphakala](https://github.com/tphakala))
+- **Chunk/Cat** — contiguous block copies instead of per-element scatter ([#82](https://github.com/xucanxx/born/pull/82) by [@tphakala](https://github.com/tphakala))
+- **Broadcast indexing** — incremental odometer instead of per-element division/modulo ([#83](https://github.com/xucanxx/born/pull/83) by [@tphakala](https://github.com/tphakala))
+- **Gather** — block-copy instead of per-element coordinate math ([#85](https://github.com/xucanxx/born/pull/85) by [@tphakala](https://github.com/tphakala))
+- **TransposeAxes** — incremental index walk instead of per-element coordinate math ([#86](https://github.com/xucanxx/born/pull/86) by [@tphakala](https://github.com/tphakala))
+- **Depthwise conv** — direct kernel instead of per-channel im2col+GEMM, 3x3 unrolled path ([#87](https://github.com/xucanxx/born/pull/87) by [@tphakala](https://github.com/tphakala))
+- **1x1 conv** — direct matmul fast path bypassing im2col for pointwise convolutions ([#88](https://github.com/xucanxx/born/pull/88) by [@tphakala](https://github.com/tphakala))
+- **Broadcast multiply** — structured fast paths for trailing-run and leading-tile patterns ([#89](https://github.com/xucanxx/born/pull/89) by [@tphakala](https://github.com/tphakala))
 
 ### Contributors
 
@@ -152,8 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **LLaMA Forward signature** — `interface{ Clear() }` → `generate.KVCache`. Model now correctly satisfies `generate.LLMModel` interface ([#68](https://github.com/born-ml/born/issues/68))
-- **LLaMA Release()** — properly releases all GPU buffers for model parameters (Embed, Layers, Norm, Head). Previously missing — README example `defer model.Release()` was broken ([#68](https://github.com/born-ml/born/issues/68))
+- **LLaMA Forward signature** — `interface{ Clear() }` → `generate.KVCache`. Model now correctly satisfies `generate.LLMModel` interface ([#68](https://github.com/xucanxx/born/issues/68))
+- **LLaMA Release()** — properly releases all GPU buffers for model parameters (Embed, Layers, Norm, Head). Previously missing — README example `defer model.Release()` was broken ([#68](https://github.com/xucanxx/born/issues/68))
 
 ### Added
 
@@ -303,7 +303,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Thread-safe (sync.Mutex per package)
   - Enables deterministic model creation for experiments and testing
   - Public API: `nn.SetSeed(42)` before `nn.NewLinear(...)` guarantees identical weights
-- `Clamp` element-wise tensor operation ([#61](https://github.com/born-ml/born/pull/61) by [@bennibbelink](https://github.com/bennibbelink))
+- `Clamp` element-wise tensor operation ([#61](https://github.com/xucanxx/born/pull/61) by [@bennibbelink](https://github.com/bennibbelink))
   - Restricts values to `[min, max]` range
   - CPU: `int32`, `int64`, `float32`, `float64`
   - WebGPU: `float32`, `int32` (dedicated WGSL `clamp()` shader)
@@ -341,7 +341,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **WebGPU backend migrated from go-webgpu to gogpu/wgpu** ([#40](https://github.com/born-ml/born/issues/40))
+- **WebGPU backend migrated from go-webgpu to gogpu/wgpu** ([#40](https://github.com/xucanxx/born/issues/40))
   - Replaced `github.com/go-webgpu/webgpu` with `github.com/gogpu/wgpu` v0.26.8 (pure Go, zero CGO)
   - **No more shared library dependency** — no `.dll`/`.so`/`.dylib` downloads needed
   - True single binary deployment: `go build` produces executable with GPU support built in
@@ -356,7 +356,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `Sign` and `Abs` element-wise tensor operations — full vertical slice ([#59](https://github.com/born-ml/born/pull/59) by [@bennibbelink](https://github.com/bennibbelink))
+- `Sign` and `Abs` element-wise tensor operations — full vertical slice ([#59](https://github.com/xucanxx/born/pull/59) by [@bennibbelink](https://github.com/bennibbelink))
   - `Backend.Sign` / `Backend.Abs` interface methods
   - CPU implementation with per-type helpers: `uint8`, `int32`, `int64`, `float32`, `float64`
   - Integer `Abs` uses two's-complement wraparound semantics (`abs(MinInt) == MinInt`), matching Burn / NumPy / PyTorch
@@ -372,23 +372,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Third external contributor [@gmohmad](https://github.com/gmohmad) with 5 PRs! Plus continued work from [@bennibbelink](https://github.com/bennibbelink).
 
 **Added**:
-- ONNX `LayerNormalization` operator with new `normalization_ops.go` category ([#47](https://github.com/born-ml/born/pull/47) by @gmohmad)
-- `BroadcastShapesMatMul` — NumPy-style broadcasting for batched matrix multiplication ([#49](https://github.com/born-ml/born/pull/49) by @gmohmad)
+- ONNX `LayerNormalization` operator with new `normalization_ops.go` category ([#47](https://github.com/xucanxx/born/pull/47) by @gmohmad)
+- `BroadcastShapesMatMul` — NumPy-style broadcasting for batched matrix multiplication ([#49](https://github.com/xucanxx/born/pull/49) by @gmohmad)
 - `BatchMatMul` now supports 2D×3D, singleton batch dims, multi-dim broadcasting
 - ONNX `MatMul` auto-delegates to `BatchMatMul` for >2D inputs
 - `tensor.BroadcastShapesMatMul` public API
-- ONNX `AttributeProto` tensor attribute (field 5) parsing ([#53](https://github.com/born-ml/born/pull/53) by @gmohmad)
+- ONNX `AttributeProto` tensor attribute (field 5) parsing ([#53](https://github.com/xucanxx/born/pull/53) by @gmohmad)
 
 **Fixed**:
-- `Squeeze` scalar handling: returns `Shape{}` (scalar) instead of `Shape{1}` (1D) ([#50](https://github.com/born-ml/born/pull/50) by @gmohmad)
-- ONNX `AttributeProto` parser: correct protobuf field numbers, non-packed encoding support ([#53](https://github.com/born-ml/born/pull/53) by @gmohmad)
-- CPU backend: prevent inplace mutation when operands alias — `Mul(x,x)` no longer corrupts input ([#55](https://github.com/born-ml/born/pull/55), fixes [#45](https://github.com/born-ml/born/issues/45), reported by @gmohmad)
-- CI: added `test` gate job for branch protection required check ([#52](https://github.com/born-ml/born/pull/52))
+- `Squeeze` scalar handling: returns `Shape{}` (scalar) instead of `Shape{1}` (1D) ([#50](https://github.com/xucanxx/born/pull/50) by @gmohmad)
+- ONNX `AttributeProto` parser: correct protobuf field numbers, non-packed encoding support ([#53](https://github.com/xucanxx/born/pull/53) by @gmohmad)
+- CPU backend: prevent inplace mutation when operands alias — `Mul(x,x)` no longer corrupts input ([#55](https://github.com/xucanxx/born/pull/55), fixes [#45](https://github.com/xucanxx/born/issues/45), reported by @gmohmad)
+- CI: added `test` gate job for branch protection required check ([#52](https://github.com/xucanxx/born/pull/52))
 
 **Refactored**:
-- `ConvDims` and `PoolDims` parameter structs to reduce argument counts in conv2d/maxpool2d ([#46](https://github.com/born-ml/born/pull/46) by @bennibbelink)
-- Moved `ConvDims`/`PoolDims` to `internal/tensor/` shared package, eliminating autodiff→cpu cross-dependency (fixes [#48](https://github.com/born-ml/born/issues/48))
-- Extracted 14 helper functions from conv2d/maxpool2d inner loops (fixes [#17](https://github.com/born-ml/born/issues/17)) — compiler-inlined, Conv2D batch path ~28% faster
+- `ConvDims` and `PoolDims` parameter structs to reduce argument counts in conv2d/maxpool2d ([#46](https://github.com/xucanxx/born/pull/46) by @bennibbelink)
+- Moved `ConvDims`/`PoolDims` to `internal/tensor/` shared package, eliminating autodiff→cpu cross-dependency (fixes [#48](https://github.com/xucanxx/born/issues/48))
+- Extracted 14 helper functions from conv2d/maxpool2d inner loops (fixes [#17](https://github.com/xucanxx/born/issues/17)) — compiler-inlined, Conv2D batch path ~28% faster
 
 **Added** (PR #56 by @gmohmad):
 - ONNX comparison operators: Greater, GreaterOrEqual, Less, LessOrEqual
@@ -397,7 +397,7 @@ Third external contributor [@gmohmad](https://github.com/gmohmad) with 5 PRs! Pl
 - Broadcasting for boolean ops (Or, And) and all comparison ops in CPU backend
 
 **Fixed** (PR #56 by @gmohmad):
-- Updated `onnx/onnx.go` doc comment to match all registered operators (fixes [#43](https://github.com/born-ml/born/issues/43))
+- Updated `onnx/onnx.go` doc comment to match all registered operators (fixes [#43](https://github.com/xucanxx/born/issues/43))
 
 **ONNX operators**: 39 → 49
 
@@ -419,7 +419,7 @@ Second external contribution! Thanks to [@bennibbelink](https://github.com/benni
 - Comprehensive tests: forward + backward, float32/float64, edge cases (Inf, NaN)
 
 **Links**:
-- PR: [#37](https://github.com/born-ml/born/pull/37) by @bennibbelink
+- PR: [#37](https://github.com/xucanxx/born/pull/37) by @bennibbelink
 
 ---
 
@@ -437,8 +437,8 @@ First external contribution! Thanks to [@jsully1720](https://github.com/jsully17
 **ONNX operators**: 38 → 39
 
 **Links**:
-- PR: [#34](https://github.com/born-ml/born/pull/34) by @jsully1720
-- Issue: [#35](https://github.com/born-ml/born/issues/35)
+- PR: [#34](https://github.com/xucanxx/born/pull/34) by @jsully1720
+- Issue: [#35](https://github.com/xucanxx/born/issues/35)
 
 ---
 
@@ -610,12 +610,12 @@ Refactored public API packages to use proper Go interfaces instead of type alias
 - `backend/cpu`, `backend/webgpu`: Added compile-time interface checks
 
 **Technical Details**:
-- Improves [pkg.go.dev](https://pkg.go.dev/github.com/born-ml/born) documentation by hiding internal paths
+- Improves [pkg.go.dev](https://pkg.go.dev/github.com/xucanxx/born) documentation by hiding internal paths
 - External packages can now properly import and use the public API
 - Some interfaces (`Optimizer`, `ModelReader`) remain as type aliases due to Go's type system constraints
 
 **Fixed Issues**:
-- [#25](https://github.com/born-ml/born/issues/25) — ONNX package not accessible from external packages
+- [#25](https://github.com/xucanxx/born/issues/25) — ONNX package not accessible from external packages
 
 ---
 
@@ -692,7 +692,7 @@ lmHead := nn.NewLinear(hiddenSize, vocabSize, backend, nn.WithBias(false))
 - SwiGLU FFN layers
 
 **Links**:
-- PR: [#22](https://github.com/born-ml/born/pull/22)
+- PR: [#22](https://github.com/xucanxx/born/pull/22)
 
 ---
 
@@ -707,7 +707,7 @@ Hotfix release updating GPU backend dependencies to latest versions.
 - `go-webgpu/goffi` v0.3.3 → **v0.3.5**
 
 **Links**:
-- PR: [#21](https://github.com/born-ml/born/pull/21)
+- PR: [#21](https://github.com/xucanxx/born/pull/21)
 
 ---
 
@@ -726,7 +726,7 @@ Hotfix release updating GPU backend dependencies for improved stability.
 - Added `TASK-110-backend-strategy-gogpu.md` for future GPU backend strategy planning
 
 **Links**:
-- PR: [#18](https://github.com/born-ml/born/pull/18)
+- PR: [#18](https://github.com/xucanxx/born/pull/18)
 
 ---
 
@@ -780,8 +780,8 @@ Patch release addressing cognitive complexity concerns raised by community contr
 **Files Changed**: 13 files, +994/-460 lines
 
 **Links**:
-- Issue: [#14](https://github.com/born-ml/born/issues/14)
-- PR: [#15](https://github.com/born-ml/born/pull/15)
+- Issue: [#14](https://github.com/xucanxx/born/issues/14)
+- PR: [#15](https://github.com/xucanxx/born/pull/15)
 - Community: Thanks to [@marcelloh](https://github.com/marcelloh) for the detailed analysis!
 
 ---
@@ -1082,9 +1082,9 @@ Major release adding complete LLM inference support! Run LLaMA, Mistral, DeepSee
 
 ```go
 import (
-    "github.com/born-ml/born/generate"
-    "github.com/born-ml/born/tokenizer"
-    "github.com/born-ml/born/loader"
+    "github.com/xucanxx/born/generate"
+    "github.com/xucanxx/born/tokenizer"
+    "github.com/xucanxx/born/loader"
 )
 
 // Load tokenizer
@@ -1181,8 +1181,8 @@ Major release adding complete transformer architecture support! Build GPT, LLaMA
 
 ```go
 import (
-    "github.com/born-ml/born/nn"
-    "github.com/born-ml/born/tensor"
+    "github.com/xucanxx/born/nn"
+    "github.com/xucanxx/born/tensor"
 )
 
 // Create a transformer block (GPT-2 style)
@@ -1262,7 +1262,7 @@ Major release adding essential operations for modern transformer architectures (
 
 **Public API Operations** (`internal/tensor/ops_extended.go`, `tensor/`):
 
-31 type-safe operations now available via `github.com/born-ml/born/tensor`:
+31 type-safe operations now available via `github.com/xucanxx/born/tensor`:
 
 - **Scalar (4)**: `MulScalar`, `AddScalar`, `SubScalar`, `DivScalar`
 - **Math (6)**: `Log`, `Exp`, `Sqrt`, `Rsqrt`, `Cos`, `Sin`
@@ -1275,7 +1275,7 @@ Major release adding essential operations for modern transformer architectures (
 
 Example usage:
 ```go
-import "github.com/born-ml/born/tensor"
+import "github.com/xucanxx/born/tensor"
 
 x := tensor.Randn[float32](tensor.Shape{2, 3}, backend)
 y := x.MulScalar(2.0)           // Scalar operations
@@ -1491,11 +1491,11 @@ docs/
 ### ✨ Added
 
 **Public API Packages**:
-- `github.com/born-ml/born/tensor` - Type-safe tensor operations
-- `github.com/born-ml/born/nn` - Neural network modules (Linear, Conv2D, MaxPool2D, etc.)
-- `github.com/born-ml/born/optim` - Optimizers (SGD, Adam)
-- `github.com/born-ml/born/backend/cpu` - CPU backend
-- `github.com/born-ml/born/autodiff` - Automatic differentiation
+- `github.com/xucanxx/born/tensor` - Type-safe tensor operations
+- `github.com/xucanxx/born/nn` - Neural network modules (Linear, Conv2D, MaxPool2D, etc.)
+- `github.com/xucanxx/born/optim` - Optimizers (SGD, Adam)
+- `github.com/xucanxx/born/backend/cpu` - CPU backend
+- `github.com/xucanxx/born/autodiff` - Automatic differentiation
 
 **Documentation**:
 - Comprehensive package documentation for pkg.go.dev
@@ -1511,12 +1511,12 @@ docs/
 
 **Before (v0.1.0 - broken for external use)**:
 ```go
-import "github.com/born-ml/born/internal/tensor"  // ❌ Cannot import!
+import "github.com/xucanxx/born/internal/tensor"  // ❌ Cannot import!
 ```
 
 **After (v0.1.1 - works!)**:
 ```go
-import "github.com/born-ml/born/tensor"  // ✅ Public API
+import "github.com/xucanxx/born/tensor"  // ✅ Public API
 ```
 
 ### 🧪 Testing
@@ -1644,34 +1644,34 @@ N/A (initial release)
 
 ---
 
-[0.7.10]: https://github.com/born-ml/born/releases/tag/v0.7.10
-[0.7.9]: https://github.com/born-ml/born/releases/tag/v0.7.9
-[0.7.8]: https://github.com/born-ml/born/releases/tag/v0.7.8
-[0.7.15]: https://github.com/born-ml/born/releases/tag/v0.7.15
-[0.7.14]: https://github.com/born-ml/born/releases/tag/v0.7.14
-[0.7.13]: https://github.com/born-ml/born/releases/tag/v0.7.13
-[0.7.12]: https://github.com/born-ml/born/releases/tag/v0.7.12
-[0.7.11]: https://github.com/born-ml/born/releases/tag/v0.7.11
-[0.7.10]: https://github.com/born-ml/born/releases/tag/v0.7.10
-[0.7.9]: https://github.com/born-ml/born/releases/tag/v0.7.9
-[0.7.8]: https://github.com/born-ml/born/releases/tag/v0.7.8
-[0.7.7]: https://github.com/born-ml/born/releases/tag/v0.7.7
-[0.7.6]: https://github.com/born-ml/born/releases/tag/v0.7.6
-[0.7.5]: https://github.com/born-ml/born/releases/tag/v0.7.5
-[0.7.4]: https://github.com/born-ml/born/releases/tag/v0.7.4
-[0.7.3]: https://github.com/born-ml/born/releases/tag/v0.7.3
-[0.7.2]: https://github.com/born-ml/born/releases/tag/v0.7.2
-[0.7.1]: https://github.com/born-ml/born/releases/tag/v0.7.1
-[0.7.0]: https://github.com/born-ml/born/releases/tag/v0.7.0
-[0.6.0]: https://github.com/born-ml/born/releases/tag/v0.6.0
-[0.5.5]: https://github.com/born-ml/born/releases/tag/v0.5.5
-[0.5.4]: https://github.com/born-ml/born/releases/tag/v0.5.4
-[0.5.3]: https://github.com/born-ml/born/releases/tag/v0.5.3
-[0.5.2]: https://github.com/born-ml/born/releases/tag/v0.5.2
-[0.5.1]: https://github.com/born-ml/born/releases/tag/v0.5.1
-[0.5.0]: https://github.com/born-ml/born/releases/tag/v0.5.0
-[0.4.0]: https://github.com/born-ml/born/releases/tag/v0.4.0
-[0.3.0]: https://github.com/born-ml/born/releases/tag/v0.3.0
-[0.2.0]: https://github.com/born-ml/born/releases/tag/v0.2.0
-[0.1.1]: https://github.com/born-ml/born/releases/tag/v0.1.1
-[0.1.0]: https://github.com/born-ml/born/releases/tag/v0.1.0
+[0.7.10]: https://github.com/xucanxx/born/releases/tag/v0.7.10
+[0.7.9]: https://github.com/xucanxx/born/releases/tag/v0.7.9
+[0.7.8]: https://github.com/xucanxx/born/releases/tag/v0.7.8
+[0.7.15]: https://github.com/xucanxx/born/releases/tag/v0.7.15
+[0.7.14]: https://github.com/xucanxx/born/releases/tag/v0.7.14
+[0.7.13]: https://github.com/xucanxx/born/releases/tag/v0.7.13
+[0.7.12]: https://github.com/xucanxx/born/releases/tag/v0.7.12
+[0.7.11]: https://github.com/xucanxx/born/releases/tag/v0.7.11
+[0.7.10]: https://github.com/xucanxx/born/releases/tag/v0.7.10
+[0.7.9]: https://github.com/xucanxx/born/releases/tag/v0.7.9
+[0.7.8]: https://github.com/xucanxx/born/releases/tag/v0.7.8
+[0.7.7]: https://github.com/xucanxx/born/releases/tag/v0.7.7
+[0.7.6]: https://github.com/xucanxx/born/releases/tag/v0.7.6
+[0.7.5]: https://github.com/xucanxx/born/releases/tag/v0.7.5
+[0.7.4]: https://github.com/xucanxx/born/releases/tag/v0.7.4
+[0.7.3]: https://github.com/xucanxx/born/releases/tag/v0.7.3
+[0.7.2]: https://github.com/xucanxx/born/releases/tag/v0.7.2
+[0.7.1]: https://github.com/xucanxx/born/releases/tag/v0.7.1
+[0.7.0]: https://github.com/xucanxx/born/releases/tag/v0.7.0
+[0.6.0]: https://github.com/xucanxx/born/releases/tag/v0.6.0
+[0.5.5]: https://github.com/xucanxx/born/releases/tag/v0.5.5
+[0.5.4]: https://github.com/xucanxx/born/releases/tag/v0.5.4
+[0.5.3]: https://github.com/xucanxx/born/releases/tag/v0.5.3
+[0.5.2]: https://github.com/xucanxx/born/releases/tag/v0.5.2
+[0.5.1]: https://github.com/xucanxx/born/releases/tag/v0.5.1
+[0.5.0]: https://github.com/xucanxx/born/releases/tag/v0.5.0
+[0.4.0]: https://github.com/xucanxx/born/releases/tag/v0.4.0
+[0.3.0]: https://github.com/xucanxx/born/releases/tag/v0.3.0
+[0.2.0]: https://github.com/xucanxx/born/releases/tag/v0.2.0
+[0.1.1]: https://github.com/xucanxx/born/releases/tag/v0.1.1
+[0.1.0]: https://github.com/xucanxx/born/releases/tag/v0.1.0

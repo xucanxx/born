@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/born-ml/born/internal/gguf"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/gguf"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // ModelFormat represents the model weight format.

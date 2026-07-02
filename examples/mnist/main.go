@@ -6,11 +6,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/born-ml/born/autodiff"
-	"github.com/born-ml/born/backend/cpu"
-	"github.com/born-ml/born/nn"
-	"github.com/born-ml/born/optim"
-	"github.com/born-ml/born/tensor"
+	"github.com/xucanxx/born/autodiff"
+	"github.com/xucanxx/born/backend/cpu"
+	"github.com/xucanxx/born/nn"
+	"github.com/xucanxx/born/optim"
+	"github.com/xucanxx/born/tensor"
 )
 
 func main() {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 	"github.com/gogpu/gputypes"
 	wgpu "github.com/gogpu/wgpu"
 )

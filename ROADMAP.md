@@ -10,7 +10,7 @@
 
 ## 🎯 Vision
 
-Born = **de-facto standard ML for Go ecosystem.** Any Go service adds ML via `go get github.com/born-ml/born` — training and inference in the same binary, same toolchain, zero external dependencies.
+Born = **de-facto standard ML for Go ecosystem.** Any Go service adds ML via `go get github.com/xucanxx/born` — training and inference in the same binary, same toolchain, zero external dependencies.
 
 Not a PyTorch replacement (different niche). Not an academic tool (production-first). Born is what `database/sql` is for databases: the standard Go-native interface for ML.
 
@@ -229,7 +229,7 @@ v1.0.0 LTS → API freeze, stability guarantees
 - API freeze (community feedback period)
 - Stable API guarantees, semantic versioning
 - Production hardening, comprehensive documentation
-- Goal: any Go service adds ML via `go get github.com/born-ml/born`
+- Goal: any Go service adds ML via `go get github.com/xucanxx/born`
 
 ---
 
@@ -582,11 +582,11 @@ See [CHANGELOG.md](CHANGELOG.md) for full details.
 ## 📞 Support
 
 **Bug Reports**:
-- GitHub Issues: https://github.com/born-ml/born/issues
+- GitHub Issues: https://github.com/xucanxx/born/issues
 - Security: See SECURITY.md
 
 **Questions**:
-- GitHub Discussions: https://github.com/born-ml/born/discussions
+- GitHub Discussions: https://github.com/xucanxx/born/discussions
 - Stack Overflow: Tag `born-ml`
 
 **Contributing**:

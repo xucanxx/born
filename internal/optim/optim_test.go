@@ -4,11 +4,11 @@ import (
 	"math"
 	"testing"
 
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/nn"
-	"github.com/born-ml/born/internal/optim"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/nn"
+	"github.com/xucanxx/born/internal/optim"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Helper to check float equality with tolerance.

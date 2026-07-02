@@ -8,10 +8,10 @@ import (
 	"math"
 	"testing"
 
-	"github.com/born-ml/born/internal/autodiff"
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/generate"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/autodiff"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/generate"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Compile-time interface satisfaction check.

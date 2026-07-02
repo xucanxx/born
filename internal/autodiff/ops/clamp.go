@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // ClampOp represents the clamp operation: y = clamp(x, min, max).

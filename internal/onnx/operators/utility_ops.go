@@ -5,7 +5,7 @@ package operators
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // registerUtilityOps adds utility operators to the registry.

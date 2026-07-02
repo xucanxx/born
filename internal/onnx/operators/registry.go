@@ -5,7 +5,7 @@ package operators
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // OpHandler processes an ONNX node and returns output tensors.

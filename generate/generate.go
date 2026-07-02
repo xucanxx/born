@@ -10,8 +10,8 @@
 // Example usage:
 //
 //	import (
-//	    "github.com/born-ml/born/generate"
-//	    "github.com/born-ml/born/tokenizer"
+//	    "github.com/xucanxx/born/generate"
+//	    "github.com/xucanxx/born/tokenizer"
 //	)
 //
 //	// Create sampler
@@ -28,8 +28,8 @@
 package generate
 
 import (
-	"github.com/born-ml/born/internal/generate"
-	"github.com/born-ml/born/internal/tokenizer"
+	"github.com/xucanxx/born/internal/generate"
+	"github.com/xucanxx/born/internal/tokenizer"
 )
 
 // Sampling Configuration

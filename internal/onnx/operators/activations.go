@@ -5,7 +5,7 @@ package operators
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // registerActivations adds activation operators to the registry.

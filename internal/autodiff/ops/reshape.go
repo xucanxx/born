@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // ReshapeOp records a reshape operation for autodiff.

@@ -3,8 +3,8 @@ package generate
 import (
 	"testing"
 
-	"github.com/born-ml/born/internal/tensor"
-	"github.com/born-ml/born/internal/tokenizer"
+	"github.com/xucanxx/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tokenizer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

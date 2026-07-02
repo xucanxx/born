@@ -1,6 +1,6 @@
 package onnx
 
-import "github.com/born-ml/born/internal/tensor"
+import "github.com/xucanxx/born/internal/tensor"
 
 // Model represents a loaded ONNX model ready for inference.
 //

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/born-ml/born/internal/nn"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/nn"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Adam implements the Adam (Adaptive Moment Estimation) optimizer with optional

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/born-ml/born/internal/backend/cpu"
-	"github.com/born-ml/born/internal/loader"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/backend/cpu"
+	"github.com/xucanxx/born/internal/loader"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // TestSafeTensorsExportBasic tests basic SafeTensors export.

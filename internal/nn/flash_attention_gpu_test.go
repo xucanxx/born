@@ -6,8 +6,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/born-ml/born/internal/backend/webgpu"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/backend/webgpu"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // TestFlashAttentionGPU tests GPU vs CPU correctness.

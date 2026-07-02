@@ -5,7 +5,7 @@ package nn
 import (
 	"math"
 
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // ScaledDotProductAttention computes attention scores using the scaled dot-product mechanism.

@@ -143,7 +143,7 @@ Three-layer SIMD architecture with always-on dispatch via `golang.org/x/sys/cpu`
 
 **Fuzz tests** — 14 fuzz targets covering all inplace ops with IEEE 754 edge-case seed corpus (NaN, ±Inf, ±0, subnormals, ULP neighbors, min/max).
 
-Detection via `golang.org/x/sys/cpu` (runtime). Function pointer dispatch — zero overhead when SIMD unavailable. ARM64 NEON planned ([#106](https://github.com/born-ml/born/issues/106)).
+Detection via `golang.org/x/sys/cpu` (runtime). Function pointer dispatch — zero overhead when SIMD unavailable. ARM64 NEON planned ([#106](https://github.com/xucanxx/born/issues/106)).
 
 ---
 

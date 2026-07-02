@@ -14,8 +14,8 @@ package nn
 import (
 	"fmt"
 
-	"github.com/born-ml/born/internal/serialization"
-	"github.com/born-ml/born/internal/tensor"
+	"github.com/xucanxx/born/internal/serialization"
+	"github.com/xucanxx/born/internal/tensor"
 )
 
 // Module is the base interface for all neural network components.
