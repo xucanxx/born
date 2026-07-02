@@ -7,6 +7,7 @@ package llama
 import (
 	"fmt"
 	"math"
+	"sync"
 
 	"github.com/xucanxx/born/internal/generate"
 	"github.com/xucanxx/born/internal/nn"
@@ -313,9 +314,15 @@ func NewModel[B tensor.Backend](cfg Config, backend B, opts ...Option[B]) *Model
 	}
 
 	layers := make([]*Layer[B], cfg.NumLayers)
+	var wg sync.WaitGroup
+	wg.Add(cfg.NumLayers)
 	for i := range layers {
-		layers[i] = newLayer(cfg, options, backend)
+		go func(i int) {
+			defer wg.Done()
+			layers[i] = newLayer(cfg, options, backend)
+		}(i)
 	}
+	wg.Wait()
 
 	return &Model[B]{
 		Embed:   nn.NewEmbedding[B](cfg.VocabSize, cfg.HiddenSize, backend),
