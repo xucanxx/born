@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/xucanxx/born/internal/parallel"
 	"github.com/xucanxx/born/internal/tensor"
 )
 
@@ -92,15 +93,14 @@ func NewRotaryEncoding[B tensor.Backend](cfg RotaryEncodingConfig, backend B) *R
 	// Pre-compute cos and sin for all positions
 	cosData := make([]float32, cfg.MaxSeqLen*halfDim)
 	sinData := make([]float32, cfg.MaxSeqLen*halfDim)
-
-	for pos := 0; pos < cfg.MaxSeqLen; pos++ {
-		for i := 0; i < halfDim; i++ {
+	parallel.For(halfDim, func(i int) {
+		for pos := 0; pos < cfg.MaxSeqLen; pos++ {
 			angle := float64(pos) * float64(freqs[i])
 			idx := pos*halfDim + i
 			cosData[idx] = float32(math.Cos(angle))
 			sinData[idx] = float32(math.Sin(angle))
 		}
-	}
+	}, parallel.DefaultConfig())
 
 	// Create tensors
 	freqCos, err := tensor.FromSlice[float32, B](cosData, tensor.Shape{cfg.MaxSeqLen, halfDim}, backend)

@@ -51,10 +51,41 @@ func For(n int, f func(i int), cfg Config) {
 }
 
 // ForBatch optimized for batch*channels iteration pattern.
-// Common in CNN operations like Conv2D.
+// Common in CNN operations like Conv2D or broadcasting multidimensional tensors.
 func ForBatch(batch, channels int, f func(b, c int), cfg Config) {
 	n := batch * channels
-	For(n, func(k int) {
-		f(k/channels, k%channels)
-	}, cfg)
+	if !cfg.Enabled || n < cfg.MinChunkSize || channels == 0 {
+		// Sequential fallback (no division needed)
+		for b := 0; b < batch; b++ {
+			for c := 0; c < channels; c++ {
+				f(b, c)
+			}
+		}
+		return
+	}
+
+	var wg sync.WaitGroup
+	chunkSize := max((n+cfg.NumWorkers-1)/cfg.NumWorkers, cfg.MinChunkSize)
+
+	for start := 0; start < n; start += chunkSize {
+		end := min(start+chunkSize, n)
+		wg.Add(1)
+		go func(s, e int) {
+			defer wg.Done()
+			// 只在片段起点进行一次除法和取模
+			b := s / channels
+			c := s % channels
+
+			for i := s; i < e; i++ {
+				f(b, c)
+				// 状态机步进：用加法代替除法
+				c++
+				if c == channels {
+					c = 0
+					b++
+				}
+			}
+		}(start, end)
+	}
+	wg.Wait()
 }

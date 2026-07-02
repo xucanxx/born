@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+
+	"github.com/xucanxx/born/internal/parallel"
 )
 
 // Dequantize преобразует quantized данные в float32.
@@ -30,14 +32,20 @@ func Dequantize(data []byte, dtype GGMLType, numElements int) ([]float32, error)
 	result := make([]float32, numElements)
 	numBlocks := (numElements + trait.BlockSize - 1) / trait.BlockSize
 
-	offset := 0
-	elemIdx := 0
+	// Dequantize blocks in parallel.
+	var dequantErr error
+	parallel.For(numBlocks, func(i int) {
+		if dequantErr != nil {
+			return // Early exit if error occurred.
+		}
+		offset := i * trait.TypeSize
+		elemIdx := i * trait.BlockSize
 
-	for i := 0; i < numBlocks; i++ {
 		blockData := data[offset : offset+trait.TypeSize]
 		block, err := DequantizeBlock(blockData, dtype)
 		if err != nil {
-			return nil, fmt.Errorf("dequantize block %d: %w", i, err)
+			dequantErr = fmt.Errorf("dequantize block %d: %w", i, err)
+			return
 		}
 
 		// Copy block values to result.
@@ -45,8 +53,10 @@ func Dequantize(data []byte, dtype GGMLType, numElements int) ([]float32, error)
 			result[elemIdx] = block[j]
 			elemIdx++
 		}
+	}, parallel.DefaultConfig())
 
-		offset += trait.TypeSize
+	if dequantErr != nil {
+		return nil, dequantErr
 	}
 
 	return result, nil

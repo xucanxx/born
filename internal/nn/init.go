@@ -2,7 +2,9 @@ package nn
 
 import (
 	"math"
+	"runtime"
 
+	"github.com/xucanxx/born/internal/parallel"
 	"github.com/xucanxx/born/internal/tensor"
 )
 
@@ -31,9 +33,9 @@ func Xavier[B tensor.Backend](fanIn, fanOut int, shape tensor.Shape, backend B) 
 	}
 
 	data := t.AsFloat32()
-	for i := range data {
-		data[i] = float32((randFloat64()*2.0 - 1.0) * bound)
-	}
+	parallel.For(len(data), func(i int) {
+		data[i] = float32((RandFloat64()*2.0 - 1.0) * bound)
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 
 	return tensor.New[float32, B](t, backend)
 }

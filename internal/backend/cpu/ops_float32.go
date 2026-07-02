@@ -1,6 +1,9 @@
 package cpu
 
 import (
+	"runtime"
+
+	"github.com/xucanxx/born/internal/parallel"
 	"github.com/xucanxx/born/internal/tensor"
 )
 
@@ -102,23 +105,75 @@ func addBroadcastFloat32(dst, a, b []float32, aShape, bShape, outShape tensor.Sh
 	aStrides := computeBroadcastStridesForShape(aShape, outShape)
 	bStrides := computeBroadcastStridesForShape(bShape, outShape)
 
-	n := outShape.NumElements()
 	ndim := len(outShape)
-	coords := make([]int, ndim)
-	aIdx, bIdx := 0, 0
-	for i := 0; i < n; i++ {
-		dst[i] = a[aIdx] + b[bIdx]
-		for d := ndim - 1; d >= 0; d-- {
-			coords[d]++
-			aIdx += aStrides[d]
-			bIdx += bStrides[d]
-			if coords[d] < outShape[d] {
-				break
+
+	switch ndim {
+	case 2:
+		batch := outShape[0]
+		channels := outShape[1]
+		as0, as1 := aStrides[0], aStrides[1]
+		bs0, bs1 := bStrides[0], bStrides[1]
+
+		parallel.ForBatch(batch, channels, func(c0, c1 int) {
+			aIdx := c0*as0 + c1*as1
+			bIdx := c0*bs0 + c1*bs1
+			dst[c0*channels+c1] = a[aIdx] + b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 3:
+		batch := outShape[0]
+		channels := outShape[1] * outShape[2]
+		as0, as1, as2 := aStrides[0], aStrides[1], aStrides[2]
+		bs0, bs1, bs2 := bStrides[0], bStrides[1], bStrides[2]
+		s2 := outShape[2]
+
+		parallel.ForBatch(batch, channels, func(c0, rem int) {
+			c1 := rem / s2
+			c2 := rem % s2
+
+			aIdx := c0*as0 + c1*as1 + c2*as2
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2
+			dst[c0*channels+rem] = a[aIdx] + b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 4:
+		batch := outShape[0] * outShape[1]
+		channels := outShape[2] * outShape[3]
+		as0, as1, as2, as3 := aStrides[0], aStrides[1], aStrides[2], aStrides[3]
+		bs0, bs1, bs2, bs3 := bStrides[0], bStrides[1], bStrides[2], bStrides[3]
+		s1 := outShape[1]
+		s3 := outShape[3]
+
+		parallel.ForBatch(batch, channels, func(b_, c_ int) {
+			c0 := b_ / s1
+			c1 := b_ % s1
+			c2 := c_ / s3
+			c3 := c_ % s3
+
+			aIdx := c0*as0 + c1*as1 + c2*as2 + c3*as3
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2 + c3*bs3
+			dst[b_*channels+c_] = a[aIdx] + b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	default:
+		n := outShape.NumElements()
+		outStrides := outShape.ComputeStrides()
+		parallel.For(n, func(i int) {
+			var coords [8]int
+			idx := i
+			for dim := 0; dim < ndim; dim++ {
+				coords[dim] = idx / outStrides[dim]
+				idx %= outStrides[dim]
 			}
-			coords[d] = 0
-			aIdx -= outShape[d] * aStrides[d]
-			bIdx -= outShape[d] * bStrides[d]
-		}
+
+			aIdx := 0
+			bIdx := 0
+			for dim := 0; dim < ndim; dim++ {
+				aIdx += coords[dim] * aStrides[dim]
+				bIdx += coords[dim] * bStrides[dim]
+			}
+			dst[i] = a[aIdx] + b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 	}
 }
 
@@ -126,23 +181,75 @@ func subBroadcastFloat32(dst, a, b []float32, aShape, bShape, outShape tensor.Sh
 	aStrides := computeBroadcastStridesForShape(aShape, outShape)
 	bStrides := computeBroadcastStridesForShape(bShape, outShape)
 
-	n := outShape.NumElements()
 	ndim := len(outShape)
-	coords := make([]int, ndim)
-	aIdx, bIdx := 0, 0
-	for i := 0; i < n; i++ {
-		dst[i] = a[aIdx] - b[bIdx]
-		for d := ndim - 1; d >= 0; d-- {
-			coords[d]++
-			aIdx += aStrides[d]
-			bIdx += bStrides[d]
-			if coords[d] < outShape[d] {
-				break
+
+	switch ndim {
+	case 2:
+		batch := outShape[0]
+		channels := outShape[1]
+		as0, as1 := aStrides[0], aStrides[1]
+		bs0, bs1 := bStrides[0], bStrides[1]
+
+		parallel.ForBatch(batch, channels, func(c0, c1 int) {
+			aIdx := c0*as0 + c1*as1
+			bIdx := c0*bs0 + c1*bs1
+			dst[c0*channels+c1] = a[aIdx] - b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 3:
+		batch := outShape[0]
+		channels := outShape[1] * outShape[2]
+		as0, as1, as2 := aStrides[0], aStrides[1], aStrides[2]
+		bs0, bs1, bs2 := bStrides[0], bStrides[1], bStrides[2]
+		s2 := outShape[2]
+
+		parallel.ForBatch(batch, channels, func(c0, rem int) {
+			c1 := rem / s2
+			c2 := rem % s2
+
+			aIdx := c0*as0 + c1*as1 + c2*as2
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2
+			dst[c0*channels+rem] = a[aIdx] - b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 4:
+		batch := outShape[0] * outShape[1]
+		channels := outShape[2] * outShape[3]
+		as0, as1, as2, as3 := aStrides[0], aStrides[1], aStrides[2], aStrides[3]
+		bs0, bs1, bs2, bs3 := bStrides[0], bStrides[1], bStrides[2], bStrides[3]
+		s1 := outShape[1]
+		s3 := outShape[3]
+
+		parallel.ForBatch(batch, channels, func(b_, c_ int) {
+			c0 := b_ / s1
+			c1 := b_ % s1
+			c2 := c_ / s3
+			c3 := c_ % s3
+
+			aIdx := c0*as0 + c1*as1 + c2*as2 + c3*as3
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2 + c3*bs3
+			dst[b_*channels+c_] = a[aIdx] - b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	default:
+		n := outShape.NumElements()
+		outStrides := outShape.ComputeStrides()
+		parallel.For(n, func(i int) {
+			var coords [8]int
+			idx := i
+			for dim := 0; dim < ndim; dim++ {
+				coords[dim] = idx / outStrides[dim]
+				idx %= outStrides[dim]
 			}
-			coords[d] = 0
-			aIdx -= outShape[d] * aStrides[d]
-			bIdx -= outShape[d] * bStrides[d]
-		}
+
+			aIdx := 0
+			bIdx := 0
+			for dim := 0; dim < ndim; dim++ {
+				aIdx += coords[dim] * aStrides[dim]
+				bIdx += coords[dim] * bStrides[dim]
+			}
+			dst[i] = a[aIdx] - b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 	}
 }
 
@@ -160,23 +267,75 @@ func mulBroadcastFloat32(dst, a, b []float32, aShape, bShape, outShape tensor.Sh
 	aStrides := computeBroadcastStridesForShape(aShape, outShape)
 	bStrides := computeBroadcastStridesForShape(bShape, outShape)
 
-	n := outShape.NumElements()
 	ndim := len(outShape)
-	coords := make([]int, ndim)
-	aIdx, bIdx := 0, 0
-	for i := 0; i < n; i++ {
-		dst[i] = a[aIdx] * b[bIdx]
-		for d := ndim - 1; d >= 0; d-- {
-			coords[d]++
-			aIdx += aStrides[d]
-			bIdx += bStrides[d]
-			if coords[d] < outShape[d] {
-				break
+
+	switch ndim {
+	case 2:
+		batch := outShape[0]
+		channels := outShape[1]
+		as0, as1 := aStrides[0], aStrides[1]
+		bs0, bs1 := bStrides[0], bStrides[1]
+
+		parallel.ForBatch(batch, channels, func(c0, c1 int) {
+			aIdx := c0*as0 + c1*as1
+			bIdx := c0*bs0 + c1*bs1
+			dst[c0*channels+c1] = a[aIdx] * b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 3:
+		batch := outShape[0]
+		channels := outShape[1] * outShape[2]
+		as0, as1, as2 := aStrides[0], aStrides[1], aStrides[2]
+		bs0, bs1, bs2 := bStrides[0], bStrides[1], bStrides[2]
+		s2 := outShape[2]
+
+		parallel.ForBatch(batch, channels, func(c0, rem int) {
+			c1 := rem / s2
+			c2 := rem % s2
+
+			aIdx := c0*as0 + c1*as1 + c2*as2
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2
+			dst[c0*channels+rem] = a[aIdx] * b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 4:
+		batch := outShape[0] * outShape[1]
+		channels := outShape[2] * outShape[3]
+		as0, as1, as2, as3 := aStrides[0], aStrides[1], aStrides[2], aStrides[3]
+		bs0, bs1, bs2, bs3 := bStrides[0], bStrides[1], bStrides[2], bStrides[3]
+		s1 := outShape[1]
+		s3 := outShape[3]
+
+		parallel.ForBatch(batch, channels, func(b_, c_ int) {
+			c0 := b_ / s1
+			c1 := b_ % s1
+			c2 := c_ / s3
+			c3 := c_ % s3
+
+			aIdx := c0*as0 + c1*as1 + c2*as2 + c3*as3
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2 + c3*bs3
+			dst[b_*channels+c_] = a[aIdx] * b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	default:
+		n := outShape.NumElements()
+		outStrides := outShape.ComputeStrides()
+		parallel.For(n, func(i int) {
+			var coords [8]int
+			idx := i
+			for dim := 0; dim < ndim; dim++ {
+				coords[dim] = idx / outStrides[dim]
+				idx %= outStrides[dim]
 			}
-			coords[d] = 0
-			aIdx -= outShape[d] * aStrides[d]
-			bIdx -= outShape[d] * bStrides[d]
-		}
+
+			aIdx := 0
+			bIdx := 0
+			for dim := 0; dim < ndim; dim++ {
+				aIdx += coords[dim] * aStrides[dim]
+				bIdx += coords[dim] * bStrides[dim]
+			}
+			dst[i] = a[aIdx] * b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 	}
 }
 
@@ -198,14 +357,14 @@ func mulBroadcastFullFloat32(dst, full, bc []float32, fullShape, bcShape, outSha
 	// so each run is a scalar multiply.
 	if run := trailingBroadcastRun(bcStrides, outShape); run > 1 {
 		outStrides := outShape.ComputeStrides()
-		for base := 0; base < n; base += run {
+		parallel.For((n+run-1)/run, func(base int) {
 			s := bc[computeFlatIndex(base, outStrides, bcStrides)]
 			d := dst[base : base+run]
 			f := full[base : base+run]
 			for j := range d {
 				d[j] = f[j] * s
 			}
-		}
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 		return true
 	}
 
@@ -271,23 +430,75 @@ func divBroadcastFloat32(dst, a, b []float32, aShape, bShape, outShape tensor.Sh
 	aStrides := computeBroadcastStridesForShape(aShape, outShape)
 	bStrides := computeBroadcastStridesForShape(bShape, outShape)
 
-	n := outShape.NumElements()
 	ndim := len(outShape)
-	coords := make([]int, ndim)
-	aIdx, bIdx := 0, 0
-	for i := 0; i < n; i++ {
-		dst[i] = a[aIdx] / b[bIdx]
-		for d := ndim - 1; d >= 0; d-- {
-			coords[d]++
-			aIdx += aStrides[d]
-			bIdx += bStrides[d]
-			if coords[d] < outShape[d] {
-				break
+
+	switch ndim {
+	case 2:
+		batch := outShape[0]
+		channels := outShape[1]
+		as0, as1 := aStrides[0], aStrides[1]
+		bs0, bs1 := bStrides[0], bStrides[1]
+
+		parallel.ForBatch(batch, channels, func(c0, c1 int) {
+			aIdx := c0*as0 + c1*as1
+			bIdx := c0*bs0 + c1*bs1
+			dst[c0*channels+c1] = a[aIdx] / b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 3:
+		batch := outShape[0]
+		channels := outShape[1] * outShape[2]
+		as0, as1, as2 := aStrides[0], aStrides[1], aStrides[2]
+		bs0, bs1, bs2 := bStrides[0], bStrides[1], bStrides[2]
+		s2 := outShape[2]
+
+		parallel.ForBatch(batch, channels, func(c0, rem int) {
+			c1 := rem / s2
+			c2 := rem % s2
+
+			aIdx := c0*as0 + c1*as1 + c2*as2
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2
+			dst[c0*channels+rem] = a[aIdx] / b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 4:
+		batch := outShape[0] * outShape[1]
+		channels := outShape[2] * outShape[3]
+		as0, as1, as2, as3 := aStrides[0], aStrides[1], aStrides[2], aStrides[3]
+		bs0, bs1, bs2, bs3 := bStrides[0], bStrides[1], bStrides[2], bStrides[3]
+		s1 := outShape[1]
+		s3 := outShape[3]
+
+		parallel.ForBatch(batch, channels, func(b_, c_ int) {
+			c0 := b_ / s1
+			c1 := b_ % s1
+			c2 := c_ / s3
+			c3 := c_ % s3
+
+			aIdx := c0*as0 + c1*as1 + c2*as2 + c3*as3
+			bIdx := c0*bs0 + c1*bs1 + c2*bs2 + c3*bs3
+			dst[b_*channels+c_] = a[aIdx] / b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	default:
+		n := outShape.NumElements()
+		outStrides := outShape.ComputeStrides()
+		parallel.For(n, func(i int) {
+			var coords [8]int
+			idx := i
+			for dim := 0; dim < ndim; dim++ {
+				coords[dim] = idx / outStrides[dim]
+				idx %= outStrides[dim]
 			}
-			coords[d] = 0
-			aIdx -= outShape[d] * aStrides[d]
-			bIdx -= outShape[d] * bStrides[d]
-		}
+
+			aIdx := 0
+			bIdx := 0
+			for dim := 0; dim < ndim; dim++ {
+				aIdx += coords[dim] * aStrides[dim]
+				bIdx += coords[dim] * bStrides[dim]
+			}
+			dst[i] = a[aIdx] / b[bIdx]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 	}
 }
 
@@ -303,29 +514,83 @@ func transposeFloat32(dst, src []float32, shape tensor.Shape, axes []int) {
 	}
 	dstStrides := dstShape.ComputeStrides()
 
-	// Transpose data
 	n := shape.NumElements()
-	for i := 0; i < n; i++ {
-		// Compute multi-dimensional coordinates in source
-		coords := make([]int, ndim)
-		idx := i
-		for dim := 0; dim < ndim; dim++ {
-			coords[dim] = idx / srcStrides[dim]
-			idx %= srcStrides[dim]
-		}
 
-		// Permute coordinates according to axes
-		permutedCoords := make([]int, ndim)
-		for dstDim, srcDim := range axes {
-			permutedCoords[dstDim] = coords[srcDim]
-		}
+	switch ndim {
+	case 2:
+		ds0, ds1 := dstStrides[0], dstStrides[1]
+		ax0, ax1 := axes[0], axes[1]
+		channels := shape[1]
 
-		// Compute flat index in destination
-		dstIdx := 0
-		for dim := 0; dim < ndim; dim++ {
-			dstIdx += permutedCoords[dim] * dstStrides[dim]
-		}
+		// 2D 使用 ForBatch: c0 是行, c1 是列
+		parallel.ForBatch(shape[0], channels, func(c0, c1 int) {
+			var p0, p1 int
+			if ax0 == 0 {
+				p0 = c0
+			} else {
+				p0 = c1
+			}
+			if ax1 == 0 {
+				p1 = c0
+			} else {
+				p1 = c1
+			}
+			// c0*channels+c1 等价于一维平坦索引 i
+			dst[p0*ds0+p1*ds1] = src[c0*channels+c1]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 
-		dst[dstIdx] = src[i]
+	case 3:
+		ds0, ds1, ds2 := dstStrides[0], dstStrides[1], dstStrides[2]
+		ax0, ax1, ax2 := axes[0], axes[1], axes[2]
+		channels := shape[1] * shape[2]
+
+		// 3D 把后两维压扁成 channels，ForBatch 返回 c0 和 rem
+		parallel.ForBatch(shape[0], channels, func(c0, rem int) {
+			c1 := rem / shape[2]
+			c2 := rem % shape[2]
+
+			var coords [3]int
+			coords[0], coords[1], coords[2] = c0, c1, c2
+
+			dstIdx := coords[ax0]*ds0 + coords[ax1]*ds1 + coords[ax2]*ds2
+			dst[dstIdx] = src[c0*channels+rem]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	case 4:
+		ds0, ds1, ds2, ds3 := dstStrides[0], dstStrides[1], dstStrides[2], dstStrides[3]
+		ax0, ax1, ax2, ax3 := axes[0], axes[1], axes[2], axes[3]
+		batch := shape[0] * shape[1]
+		channels := shape[2] * shape[3]
+
+		// 4D 把前两维和后两维分别压扁
+		parallel.ForBatch(batch, channels, func(b, c int) {
+			c0 := b / shape[1]
+			c1 := b % shape[1]
+			c2 := c / shape[3]
+			c3 := c % shape[3]
+
+			var coords [4]int
+			coords[0], coords[1], coords[2], coords[3] = c0, c1, c2, c3
+
+			dstIdx := coords[ax0]*ds0 + coords[ax1]*ds1 + coords[ax2]*ds2 + coords[ax3]*ds3
+			dst[dstIdx] = src[b*channels+c]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
+
+	default:
+		// 通用降级路径 (ndim > 4)
+		parallel.For(n, func(i int) {
+			var coords [8]int
+			idx := i
+			for dim := 0; dim < ndim; dim++ {
+				coords[dim] = idx / srcStrides[dim]
+				idx %= srcStrides[dim]
+			}
+
+			dstIdx := 0
+			for dstDim, srcDim := range axes {
+				dstIdx += coords[srcDim] * dstStrides[dstDim]
+			}
+			dst[dstIdx] = src[i]
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 2048})
 	}
 }

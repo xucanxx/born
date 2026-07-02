@@ -3,6 +3,7 @@ package cpu
 import (
 	"fmt"
 
+	"github.com/xucanxx/born/internal/parallel"
 	"github.com/xucanxx/born/internal/tensor"
 )
 
@@ -98,7 +99,12 @@ func matmulFloat32(c, a, b []float32, m, k, n int) {
 		return
 	}
 
-	for ii := 0; ii < m; ii += blockSizeF32 {
+	// Use parallel package to distribute row blocks across CPUs.
+	parallel.For(m/blockSizeF32+1, func(iBlock int) {
+		ii := iBlock * blockSizeF32
+		if ii >= m {
+			return
+		}
 		iEnd := min(ii+blockSizeF32, m)
 		for kk := 0; kk < k; kk += blockSizeF32 {
 			kEnd := min(kk+blockSizeF32, k)
@@ -107,7 +113,7 @@ func matmulFloat32(c, a, b []float32, m, k, n int) {
 				matmulMicroKernelF32(c, a, b, k, n, ii, iEnd, kk, kEnd, jj, jEnd)
 			}
 		}
-	}
+	}, parallel.DefaultConfig())
 }
 
 // matmulMicroKernelF32 accumulates the block product A[ii:iEnd, kk:kEnd] × B[kk:kEnd, jj:jEnd]
@@ -164,7 +170,12 @@ func matmulFloat64(c, a, b []float64, m, k, n int) {
 		return
 	}
 
-	for ii := 0; ii < m; ii += blockSizeF64 {
+	// Use parallel package to distribute row blocks across CPUs.
+	parallel.For(m/blockSizeF64+1, func(iBlock int) {
+		ii := iBlock * blockSizeF64
+		if ii >= m {
+			return
+		}
 		iEnd := min(ii+blockSizeF64, m)
 		for kk := 0; kk < k; kk += blockSizeF64 {
 			kEnd := min(kk+blockSizeF64, k)
@@ -173,7 +184,7 @@ func matmulFloat64(c, a, b []float64, m, k, n int) {
 				matmulMicroKernelF64(c, a, b, k, n, ii, iEnd, kk, kEnd, jj, jEnd)
 			}
 		}
-	}
+	}, parallel.DefaultConfig())
 }
 
 // matmulMicroKernelF64 accumulates the block product A[ii:iEnd, kk:kEnd] × B[kk:kEnd, jj:jEnd]

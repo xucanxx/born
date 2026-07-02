@@ -5,8 +5,10 @@ package cpu
 //go:generate sh -c "cd _gen/gemm && go run . -out ../../gemm_microkernel_amd64.s -stubs ../../gemm_microkernel_stub_amd64.go -pkg cpu"
 
 import (
+	"runtime"
 	"sync"
 
+	"github.com/xucanxx/born/internal/parallel"
 	"golang.org/x/sys/cpu"
 )
 
@@ -92,10 +94,20 @@ func gemmAVX2F32(c, a, b []float32, m, k, n int) {
 // tiles. Each B element feeds only one output row, so packing B would double its
 // traffic for no reuse; the 1x16 kernel streams B with its native stride.
 func gemvStridedF32(c, a, b []float32, m, k, n, nFull int) {
-	for i := 0; i < m; i++ {
-		for j := 0; j < nFull; j += gemmNr {
-			gemmMicroKernel1x16StridedAVX2(c[i*n+j:], a[i*k:], b[j:], k, n)
-		}
+	if m > nFull/gemmNr {
+		parallel.For(m, func(i int) {
+			for j := 0; j < nFull; j += gemmNr {
+				gemmMicroKernel1x16StridedAVX2(c[i*n+j:], a[i*k:], b[j:], k, n)
+			}
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
+	} else {
+		parallel.For((nFull+gemmNr-1)/gemmNr, func(p int) {
+			j := p * gemmNr
+			for i := 0; i < m; i++ {
+				gemmMicroKernel1x16StridedAVX2(c[i*n+j:], a[i*k:], b[j:], k, n)
+			}
+		}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
+
 	}
 }
 
@@ -113,7 +125,7 @@ func gemmPackedF32(c, a, b []float32, m, k, n, mFull, nFull int, sc *gemmScratch
 	packB16(bp, b, k, n, nTiles)
 	packA6(ap, a, k, nBlocks)
 
-	for t := 0; t < nTiles; t++ {
+	parallel.For(nTiles, func(t int) {
 		jt := t * gemmNr
 		bpt := bp[t*k*gemmNr:]
 		for bi := 0; bi < nBlocks; bi++ {
@@ -124,7 +136,7 @@ func gemmPackedF32(c, a, b []float32, m, k, n, mFull, nFull int, sc *gemmScratch
 		for i := mFull; i < m; i++ {
 			gemmMicroKernel1x16AVX2(c[i*n+jt:], a[i*k:], bpt, k)
 		}
-	}
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 }
 
 // gemmTailF32 computes the n%gemmNr column remainder [nFull, n) for all rows. The
@@ -138,36 +150,36 @@ func gemmTailF32(c, a, b []float32, m, k, n, nFull, nrem int, sc *gemmScratch) {
 	packTailB(bt, b, k, n, nFull, nrem)
 
 	var scratch [gemmNr]float32
-	for i := 0; i < m; i++ {
+	parallel.For(m, func(i int) {
 		gemmMicroKernel1x16AVX2(scratch[:], a[i*k:], bt, k)
 		copy(c[i*n+nFull:i*n+n], scratch[:nrem])
-	}
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 }
 
 // packTailB packs the nrem (< gemmNr) tail columns [nFull, n) of B[k,n] into bt as
 // a contiguous [k][gemmNr] panel, zero-filling the unused columns so the 1x16
 // kernel reads a full 16-wide row.
 func packTailB(bt, b []float32, k, n, nFull, nrem int) {
-	for kk := 0; kk < k; kk++ {
+	parallel.For(k, func(kk int) {
 		d := bt[kk*gemmNr : kk*gemmNr+gemmNr : kk*gemmNr+gemmNr]
 		copy(d[:nrem], b[kk*n+nFull:kk*n+nFull+nrem])
 		for j := nrem; j < gemmNr; j++ {
 			d[j] = 0
 		}
-	}
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 }
 
 // packB16 copies the full gemmNr-wide column tiles of B[k,n] into bp laid out as
 // [nTiles][k][gemmNr] contiguous, so the micro-kernel reads each panel's k rows
 // sequentially (stride gemmNr) instead of with B's column stride n.
 func packB16(bp, b []float32, k, n, nTiles int) {
-	for t := 0; t < nTiles; t++ {
+	parallel.For(nTiles, func(t int) {
 		jt := t * gemmNr
 		dst := bp[t*k*gemmNr:]
 		for kk := 0; kk < k; kk++ {
 			copy(dst[kk*gemmNr:kk*gemmNr+gemmNr], b[kk*n+jt:kk*n+jt+gemmNr])
 		}
-	}
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 }
 
 // packA6 copies the full gemmMr-tall row blocks of A[m,k] into ap laid out as
@@ -178,7 +190,7 @@ func packB16(bp, b []float32, k, n, nTiles int) {
 // source rows are sliced up front and the destination window is 3-index sliced,
 // so the inner loop carries a single bounds check per k instead of twelve.
 func packA6(ap, a []float32, k, nBlocks int) {
-	for bi := 0; bi < nBlocks; bi++ {
+	parallel.For(nBlocks, func(bi int) {
 		base := bi * gemmMr * k
 		dst := ap[base : base+gemmMr*k]
 		r0 := a[base+0*k : base+1*k]
@@ -192,5 +204,5 @@ func packA6(ap, a []float32, k, nBlocks int) {
 			d[0], d[1], d[2] = r0[kk], r1[kk], r2[kk]
 			d[3], d[4], d[5] = r3[kk], r4[kk], r5[kk]
 		}
-	}
+	}, parallel.Config{Enabled: true, NumWorkers: runtime.NumCPU(), MinChunkSize: 1})
 }
