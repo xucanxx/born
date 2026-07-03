@@ -59,9 +59,10 @@ func TestCPUBackend_Add(t *testing.T) {
 			aData[i] = float32(i + 1)  // 1, 2, 3, 4, 5, 6
 			bData[i] = float32(i + 10) // 10, 11, 12, 13, 14, 15
 		}
-
+		t.Log("a:", aData)
+		t.Log("b:", bData)
 		result := backend.Add(a, b)
-
+		t.Log("result:", result.AsFloat32())
 		// 1+10=11, 2+11=13, 3+12=15, 4+13=17, 5+14=19, 6+15=21
 		expected := []float32{11, 13, 15, 17, 19, 21}
 		if !float32SliceEqual(result.AsFloat32(), expected) {

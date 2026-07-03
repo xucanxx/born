@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/xucanxx/born/internal/tensor"
@@ -164,16 +165,15 @@ func (g *TextGenerator) Generate(prompt string, config GenerateConfig) (string, 
 }
 
 // GenerateStream generates text and returns a channel of results.
-func (g *TextGenerator) GenerateStream(prompt string, config GenerateConfig) (<-chan GenerateResult, error) {
+func (g *TextGenerator) GenerateStream(prompt string, config GenerateConfig) (chan GenerateResult, error) {
 	inputIDs, err := g.tokenizer.Encode(prompt)
 	if err != nil {
 		return nil, fmt.Errorf("encode prompt: %w", err)
 	}
 
 	ch := make(chan GenerateResult, 1)
-	log.Println("Starting GenerateStream with prompt:", prompt)
+	// log.Println("Starting GenerateStream with prompt:", prompt)
 	go func() {
-		defer close(ch)
 
 		if config.EchoPrompt {
 			// Send prompt tokens first
@@ -237,6 +237,12 @@ func (g *TextGenerator) generate(
 	prevTokens = append(prevTokens, inputIDs...) // For repetition penalty
 	var shouldContinue atomic.Bool
 	shouldContinue.Store(true)
+	generateResults := make([]GenerateResult, config.MaxTokens)
+	var mtx sync.Mutex
+	finishArr := make([]bool, config.MaxTokens)
+	maxP := 0
+	runP := 0
+	var wg sync.WaitGroup
 	for i := 0; i < config.MaxTokens; i++ {
 		// Sample next token
 		var nextToken int32
@@ -254,22 +260,33 @@ func (g *TextGenerator) generate(
 
 		// Check stop conditions
 		done, reason := g.checkStopConditions(nextToken, generated, config)
-		go func(token int32, ifDone bool, reason_Arge string) {
+		go func(p int, token int32, ifDone bool, reason_Arge string) {
 			// Decode token
 			tokenStr, _ := g.tokenizer.Decode([]int32{token})
-			log.Println("Generated token:", token, "Done:", ifDone, "Reason:", reason_Arge)
-
-			// Callback
-			if callback(GenerateResult{
+			generateResults[p] = GenerateResult{
 				Token:   tokenStr,
 				TokenID: token,
 				Done:    ifDone,
 				Reason:  reason_Arge,
-			}) == false {
-				shouldContinue.Store(false)
 			}
+			finishArr[p] = true
+			wg.Add(1)
+			log.Println("Generated token:", token, "Done:", ifDone, "Reason:", reason_Arge)
+			mtx.Lock()
+			if p > maxP {
+				maxP = p
+			}
+			for runP <= maxP && finishArr[runP] == true {
+				runP++
+				// Callback
+				if callback(generateResults[runP]) == false {
+					shouldContinue.Store(false)
+				}
+				wg.Done()
+			}
+			mtx.Unlock()
 
-		}(nextToken, done, reason)
+		}(i, nextToken, done, reason)
 
 		if done || !shouldContinue.Load() {
 			break
@@ -282,6 +299,7 @@ func (g *TextGenerator) generate(
 		}
 	}
 
+	wg.Wait()
 	return nil
 }
 
