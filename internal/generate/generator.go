@@ -2,7 +2,9 @@ package generate
 
 import (
 	"fmt"
+	"log"
 	"strings"
+	"sync/atomic"
 
 	"github.com/xucanxx/born/internal/tensor"
 	"github.com/xucanxx/born/internal/tokenizer"
@@ -169,7 +171,7 @@ func (g *TextGenerator) GenerateStream(prompt string, config GenerateConfig) (<-
 	}
 
 	ch := make(chan GenerateResult, 1)
-
+	log.Println("Starting GenerateStream with prompt:", prompt)
 	go func() {
 		defer close(ch)
 
@@ -180,9 +182,11 @@ func (g *TextGenerator) GenerateStream(prompt string, config GenerateConfig) (<-
 		}
 
 		_ = g.generate(inputIDs, config, func(res GenerateResult) bool {
+			log.Printf("Generated token: %s (ID: %d)", res.Token, res.TokenID)
 			ch <- res
 			return !res.Done && res.Error == nil
 		})
+		log.Println("GenerateStream completed")
 	}()
 
 	return ch, nil
@@ -229,8 +233,10 @@ func (g *TextGenerator) generate(
 
 	// Decode: generate tokens one by one
 	generated := make([]int32, 0, config.MaxTokens)
-	prevTokens := append([]int32{}, inputIDs...) // For repetition penalty
-
+	prevTokens := make([]int32, 0, config.MaxTokens+1)
+	prevTokens = append(prevTokens, inputIDs...) // For repetition penalty
+	var shouldContinue atomic.Bool
+	shouldContinue.Store(true)
 	for i := 0; i < config.MaxTokens; i++ {
 		// Sample next token
 		var nextToken int32
@@ -246,21 +252,26 @@ func (g *TextGenerator) generate(
 		generated = append(generated, nextToken)
 		prevTokens = append(prevTokens, nextToken)
 
-		// Decode token
-		tokenStr, _ := g.tokenizer.Decode([]int32{nextToken})
-
 		// Check stop conditions
 		done, reason := g.checkStopConditions(nextToken, generated, config)
+		go func(token int32, ifDone bool, reason_Arge string) {
+			// Decode token
+			tokenStr, _ := g.tokenizer.Decode([]int32{token})
+			log.Println("Generated token:", token, "Done:", ifDone, "Reason:", reason_Arge)
 
-		// Callback
-		shouldContinue := callback(GenerateResult{
-			Token:   tokenStr,
-			TokenID: nextToken,
-			Done:    done,
-			Reason:  reason,
-		})
+			// Callback
+			if callback(GenerateResult{
+				Token:   tokenStr,
+				TokenID: token,
+				Done:    ifDone,
+				Reason:  reason_Arge,
+			}) == false {
+				shouldContinue.Store(false)
+			}
 
-		if done || !shouldContinue {
+		}(nextToken, done, reason)
+
+		if done || !shouldContinue.Load() {
 			break
 		}
 
@@ -299,9 +310,14 @@ func (g *TextGenerator) checkStopConditions(
 
 	// Check stop strings
 	if len(config.StopStrings) > 0 {
-		fullText, _ := g.tokenizer.Decode(generated)
+		// 性能优化：只取最后 20 个 token 进行 Decode，避免 O(N^2) 的全量解码性能衰减
+		start := 0
+		if len(generated) > 20 {
+			start = len(generated) - 20
+		}
+		tailText, _ := g.tokenizer.Decode(generated[start:])
 		for _, stopStr := range config.StopStrings {
-			if strings.HasSuffix(fullText, stopStr) {
+			if strings.HasSuffix(tailText, stopStr) {
 				return true, "stop_string"
 			}
 		}
