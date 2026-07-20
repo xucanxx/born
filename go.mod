@@ -3,7 +3,6 @@ module github.com/xucanxx/born
 go 1.26.0
 
 require (
-	github.com/ebitengine/purego v0.10.1
 	github.com/gogpu/gputypes v0.5.1
 	github.com/gogpu/wgpu v0.30.7
 	github.com/pkoukk/tiktoken-go v0.1.8

@@ -357,10 +357,17 @@ func mulBroadcastFullFloat32(dst, full, bc []float32, fullShape, bcShape, outSha
 	// so each run is a scalar multiply.
 	if run := trailingBroadcastRun(bcStrides, outShape); run > 1 {
 		outStrides := outShape.ComputeStrides()
-		parallel.For((n+run-1)/run, func(base int) {
-			s := bc[computeFlatIndex(base, outStrides, bcStrides)]
-			d := dst[base : base+run]
-			f := full[base : base+run]
+		parallel.For((n+run-1)/run, func(i int) {
+			baseIndex := i * run
+			s := bc[computeFlatIndex(baseIndex, outStrides, bcStrides)]
+
+			endIndex := baseIndex + run
+			if endIndex > n {
+				endIndex = n
+			}
+
+			d := dst[baseIndex:endIndex]
+			f := full[baseIndex:endIndex]
 			for j := range d {
 				d[j] = f[j] * s
 			}
